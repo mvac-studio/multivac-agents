@@ -1,0 +1,35 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type Agent {
+  id: ID!
+  name: String!
+  description: String!
+  prompt: String!
+  engine: String!
+}
+
+type Engine {
+  id: ID!
+  name: String!
+  description: String!
+  model: String!
+}
+
+type Query {
+  agents: [Agent!]!
+  engines: [Engine!]!
+}
+
+
+input NewAgent {
+  name: String!
+  description: String!
+  engine: String!
+  prompt: String!
+}
+
+type Mutation {
+  createAgent(input: NewAgent!): Agent!
+}
