@@ -48,9 +48,9 @@ type Reply struct {
 	Thought string `json:"thought"`
 }
 
-func (agent *Agent) Chat(text string) (reply Reply, err error) {
+func (agent *Agent) Chat(context string, text string) (reply Reply, err error) {
 
-	reference := fetchInformation(text)
+	reference := fetchInformation(context, text)
 	fmt.Println(reference)
 	referenceMessage := services.Message{Role: "assistant", Content: "USE THIS CONTENT TO ANSWER QUESTIONS <REF>" + reference + "</REF>"}
 	message := services.Message{Role: "user", Content: text}
@@ -78,10 +78,10 @@ func (agent *Agent) Chat(text string) (reply Reply, err error) {
 	return Reply{Content: agent.context[len(agent.context)-1].Content, Thought: agent.context[len(agent.context)-4].Content}, nil
 }
 
-func fetchInformation(text string) string {
+func fetchInformation(index string, text string) string {
 	client := &http.Client{}
 	query := url.QueryEscape(text)
-	response, err := client.Get("http://multivac-embeddings-service.default.svc.cluster.local/search?q=" + query)
+	response, err := client.Get("http://multivac-embeddings-service.default.svc.cluster.local/search?index=" + index + "&q=" + query)
 	if err != nil {
 		log.Println(err)
 		return ""

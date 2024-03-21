@@ -36,7 +36,7 @@ func (session *ChatSession) start() {
 			log.Println(err)
 			return
 		}
-		response, _ := session.Agent.Chat(message.Content)
+		response, _ := session.Agent.Chat(session.UserId, message.Content)
 		output, err := json.Marshal(response)
 		log.Println("response: ", string(output))
 		err = session.SendMessage(string(output))
