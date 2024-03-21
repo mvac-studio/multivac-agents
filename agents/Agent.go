@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"multivac.network/services/agents/graph/model"
 	"multivac.network/services/agents/services"
 	"net/http"
@@ -82,6 +83,7 @@ func fetchInformation(text string) string {
 	query := url.QueryEscape(text)
 	response, err := client.Get("http://127.0.0.1:5000/search?q=" + query)
 	if err != nil {
+		log.Println(err)
 		return ""
 	}
 	content, err := io.ReadAll(response.Body)
