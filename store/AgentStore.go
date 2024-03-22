@@ -64,6 +64,7 @@ func (store *AgentStore) RetrieveAgents() ([]*model.Agent, error) {
 		results = append(results, &model.Agent{
 			ID:          agent.ID,
 			Name:        agent.Name,
+			Key:         agent.Key,
 			Description: agent.Description,
 			Engine:      agent.Engine,
 			Prompt:      agent.Prompt,
@@ -75,7 +76,7 @@ func (store *AgentStore) RetrieveAgents() ([]*model.Agent, error) {
 func (store *AgentStore) FindAgent(name string) *model.Agent {
 	collection := store.client.Database("vector").Collection("agents")
 	var agent AgentModel
-	err := collection.FindOne(context.Background(), bson.M{"name": strings.ToLower(name)}).Decode(&agent)
+	err := collection.FindOne(context.Background(), bson.M{"key": strings.ToLower(name)}).Decode(&agent)
 	if err != nil {
 		log.Fatal(err)
 		return nil
@@ -83,6 +84,7 @@ func (store *AgentStore) FindAgent(name string) *model.Agent {
 	return &model.Agent{
 		ID:          agent.ID,
 		Name:        agent.Name,
+		Key:         agent.Key,
 		Description: agent.Description,
 		Engine:      agent.Engine,
 		Prompt:      agent.Prompt,
@@ -93,6 +95,7 @@ func (store *AgentStore) FindAgent(name string) *model.Agent {
 type AgentModel struct {
 	ID          string `bson:"_id"`
 	Name        string `bson:"name"`
+	Key         string `bson:"key"`
 	Description string `bson:"description"`
 	Engine      string `bson:"engine"`
 	Prompt      string `bson:"prompt"`

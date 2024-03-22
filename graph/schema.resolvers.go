@@ -7,6 +7,8 @@ package graph
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"strings"
 
 	"multivac.network/services/agents/graph/model"
 	"multivac.network/services/agents/store"
@@ -18,6 +20,7 @@ func (r *mutationResolver) CreateAgent(ctx context.Context, input model.NewAgent
 	return agent.CreateAgent(&model.Agent{
 		Name:        input.Name,
 		Description: input.Description,
+		Key:         url.PathEscape(strings.ToLower(input.Name)),
 		Engine:      input.Engine,
 		Prompt:      input.Prompt,
 	})

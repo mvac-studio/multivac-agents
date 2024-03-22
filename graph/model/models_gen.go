@@ -6,6 +6,7 @@ type Agent struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	Key         string `json:"key"`
 	Prompt      string `json:"prompt"`
 	Engine      string `json:"engine"`
 }

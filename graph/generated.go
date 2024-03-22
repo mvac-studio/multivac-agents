@@ -52,6 +52,7 @@ type ComplexityRoot struct {
 		Description func(childComplexity int) int
 		Engine      func(childComplexity int) int
 		ID          func(childComplexity int) int
+		Key         func(childComplexity int) int
 		Name        func(childComplexity int) int
 		Prompt      func(childComplexity int) int
 	}
@@ -125,6 +126,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Agent.ID(childComplexity), true
+
+	case "Agent.key":
+		if e.complexity.Agent.Key == nil {
+			break
+		}
+
+		return e.complexity.Agent.Key(childComplexity), true
 
 	case "Agent.name":
 		if e.complexity.Agent.Name == nil {
@@ -551,6 +559,50 @@ func (ec *executionContext) fieldContext_Agent_description(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Agent_key(ctx context.Context, field graphql.CollectedField, obj *model.Agent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Agent_key(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Agent_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Agent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Agent_prompt(ctx context.Context, field graphql.CollectedField, obj *model.Agent) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Agent_prompt(ctx, field)
 	if err != nil {
@@ -860,6 +912,8 @@ func (ec *executionContext) fieldContext_Mutation_createAgent(ctx context.Contex
 				return ec.fieldContext_Agent_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Agent_description(ctx, field)
+			case "key":
+				return ec.fieldContext_Agent_key(ctx, field)
 			case "prompt":
 				return ec.fieldContext_Agent_prompt(ctx, field)
 			case "engine":
@@ -927,6 +981,8 @@ func (ec *executionContext) fieldContext_Query_agents(ctx context.Context, field
 				return ec.fieldContext_Agent_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Agent_description(ctx, field)
+			case "key":
+				return ec.fieldContext_Agent_key(ctx, field)
 			case "prompt":
 				return ec.fieldContext_Agent_prompt(ctx, field)
 			case "engine":
@@ -3062,6 +3118,11 @@ func (ec *executionContext) _Agent(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "description":
 			out.Values[i] = ec._Agent_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "key":
+			out.Values[i] = ec._Agent_key(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

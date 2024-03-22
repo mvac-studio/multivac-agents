@@ -6,6 +6,7 @@ type Agent {
   id: ID!
   name: String!
   description: String!
+  key: String!
   prompt: String!
   engine: String!
 }
