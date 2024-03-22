@@ -18,8 +18,10 @@ import "embed"
 var embeddings embed.FS
 
 type Agent struct {
+	description    *model.Agent
 	prompt         string
 	thoughtPrompt  string
+	defaultPrompt  string
 	functionPrompt string
 	Thought        string
 	context        []services.Message
@@ -28,54 +30,41 @@ type Agent struct {
 
 func NewAgent(service services.ModelService, agent *model.Agent) *Agent {
 
-	result := &Agent{prompt: agent.Prompt, service: service, context: make([]services.Message, 0)}
+	result := &Agent{description: agent, prompt: agent.Prompt, service: service, context: make([]services.Message, 0)}
 
-	thoughtPrompt, err := embeddings.ReadFile("embedded/prompts/thought")
-	functionPrompt, err := embeddings.ReadFile("embedded/prompts/function")
+	thoughtPrompt, err := embeddings.ReadFile("embedded/prompts/thought-prompt")
+	defaultPrompt, err := embeddings.ReadFile("embedded/prompts/default")
 
 	if err != nil {
 		panic(err)
 	}
-	println(agent.Prompt)
+	log.Println(fmt.Sprintf("Agent Prompt: %s", agent.Prompt))
 	result.context = append(result.context, services.Message{Role: "system", Content: agent.Prompt})
 	result.thoughtPrompt = string(thoughtPrompt)
-	result.functionPrompt = string(functionPrompt)
+	result.defaultPrompt = string(defaultPrompt)
 	return result
-}
-
-type Reply struct {
-	Content string `json:"content"`
-	Thought string `json:"thought"`
 }
 
 func (agent *Agent) Chat(context string, text string) (reply Reply, err error) {
 
-	reference := fetchInformation(context, text)
-	fmt.Println(reference)
-	referenceMessage := services.Message{Role: "assistant", Content: "USE THIS CONTENT TO ANSWER QUESTIONS <REF>" + reference + "</REF>"}
-	message := services.Message{Role: "user", Content: text}
+	agent.processThoughts(context, text)
 
-	thoughtBuffer := bytes.NewBufferString("")
-	thoughtTemplate, err := template.New("thought").Parse(agent.thoughtPrompt)
-	err = thoughtTemplate.Execute(thoughtBuffer, message)
-	thoughtMessage := services.Message{Role: "assistant", Content: thoughtBuffer.String()}
+	templateBuffer := bytes.NewBufferString("")
+	defaultTemplate, err := template.New("default-prompt").Parse(agent.defaultPrompt)
+	err = defaultTemplate.Execute(templateBuffer, map[string]string{"prompt": agent.prompt})
+	rendered := templateBuffer.String()
+	log.Println(fmt.Sprintf("Default Prompt: %s", rendered))
+	agent.context = append(agent.context, services.Message{Role: "system", Content: rendered})
 
-	agent.context = append(agent.context, thoughtMessage)
-
-	thoughtRequest := services.Request{Messages: agent.context, Stream: false}
-	err = agent.service.SendRequest(thoughtRequest, agent.thoughtHandler)
-	agent.context = append(agent.context, referenceMessage)
-	if err != nil {
-		panic(err)
-	}
-	agent.context = append(agent.context, message)
+	summarizePrompt, err := embeddings.ReadFile("embedded/prompts/summarize-prompt")
+	agent.context = append(agent.context, services.Message{Role: "user", Content: string(summarizePrompt)})
 	request := services.Request{Messages: agent.context, Stream: false}
 	err = agent.service.SendRequest(request, agent.responseHandler)
 	if err != nil {
 		panic(err)
 	}
-
-	return Reply{Content: agent.context[len(agent.context)-1].Content, Thought: agent.context[len(agent.context)-4].Content}, nil
+	log.Println(agent.description.Name)
+	return Reply{Agent: agent.description.Name, Content: agent.context[len(agent.context)-1].Content, Thought: agent.context[len(agent.context)-2].Content}, nil
 }
 
 func fetchInformation(index string, text string) string {
@@ -95,9 +84,30 @@ func (agent *Agent) responseHandler(message services.Message) {
 }
 
 func (agent *Agent) thoughtHandler(message services.Message) {
+	log.Println(fmt.Sprintf("Thought: %s", message.Content))
 	agent.context = append(agent.context,
 		services.Message{
 			Role:    "assistant",
 			Content: "<THOUGHT>" + message.Content + "</THOUGHT>",
 		})
+}
+
+func (agent *Agent) processThoughts(context string, text string) {
+	reference := fetchInformation(context, text)
+	thoughtValues := map[string]string{"memory": reference, "prompt": text}
+
+	thoughtBuffer := bytes.NewBufferString("")
+	thoughtTemplate, err := template.New("thought-prompt").Parse(agent.thoughtPrompt)
+	err = thoughtTemplate.Execute(thoughtBuffer, thoughtValues)
+	renderedThoughtPrompt := thoughtBuffer.String()
+	log.Println(renderedThoughtPrompt)
+	thoughtMessage := services.Message{Role: "system", Content: renderedThoughtPrompt}
+	reprompt := services.Message{Role: "user", Content: text}
+
+	thoughtRequest := services.Request{Messages: []services.Message{thoughtMessage, reprompt}, Stream: false}
+	err = agent.service.SendRequest(thoughtRequest, agent.thoughtHandler)
+
+	if err != nil {
+		panic(err)
+	}
 }
