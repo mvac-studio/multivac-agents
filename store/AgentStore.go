@@ -5,6 +5,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 	"log"
 	"multivac.network/services/agents/graph/model"
 	"strings"
@@ -15,7 +16,17 @@ type AgentStore struct {
 }
 
 func NewAgentStore() *AgentStore {
-	clientOptions := options.Client().ApplyURI("mongodb://192.168.88.209:27017")
+	clientOptions := options.Client()
+
+	clientOptions.ApplyURI("mongodb+srv://db-ngent-io.rcarmov.mongodb.net")
+	clientOptions.SetRetryWrites(true)
+	clientOptions.SetAppName("db-ngent-io")
+	clientOptions.SetWriteConcern(writeconcern.Majority())
+	clientOptions.SetAuth(options.Credential{
+		Username: "admin",
+		Password: "G6VuD^us",
+	})
+
 	client, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
 		panic(err)
@@ -32,7 +43,7 @@ func NewAgentStore() *AgentStore {
 
 // CreateAgent Creates a new agent
 func (store *AgentStore) CreateAgent(agent *model.Agent) (*model.Agent, error) {
-	collection := store.client.Database("vector").Collection("agents")
+	collection := store.client.Database("ngent").Collection("agents")
 	agent.Name = strings.ToLower(agent.Name)
 	_, err := collection.InsertOne(context.Background(), agent)
 	if err != nil {
@@ -44,7 +55,7 @@ func (store *AgentStore) CreateAgent(agent *model.Agent) (*model.Agent, error) {
 
 // RetrieveAgents Retrieves all agents
 func (store *AgentStore) RetrieveAgents() ([]*model.Agent, error) {
-	collection := store.client.Database("vector").Collection("agents")
+	collection := store.client.Database("ngent").Collection("agents")
 	cursor, err := collection.Find(context.Background(), bson.M{})
 	if err != nil {
 		log.Fatal(err)
@@ -74,7 +85,7 @@ func (store *AgentStore) RetrieveAgents() ([]*model.Agent, error) {
 }
 
 func (store *AgentStore) FindAgent(name string) *model.Agent {
-	collection := store.client.Database("vector").Collection("agents")
+	collection := store.client.Database("ngent").Collection("agents")
 	var agent AgentModel
 	err := collection.FindOne(context.Background(), bson.M{"key": strings.ToLower(name)}).Decode(&agent)
 	if err != nil {
