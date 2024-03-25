@@ -49,7 +49,7 @@ func agentChat(writer http.ResponseWriter, request *http.Request) {
 	log.Println(vars["agent"])
 	if validUser(vars["jwt"]) {
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-
+		log.Println("Upgrading connection:", request.RemoteAddr)
 		ws, err := upgrader.Upgrade(writer, request, nil)
 		if err != nil {
 			log.Println(err)
