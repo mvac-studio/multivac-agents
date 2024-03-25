@@ -4,9 +4,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"log"
-	"multivac.network/services/agents/agents"
+	"multivac.network/services/agents/executors"
 	"multivac.network/services/agents/graph"
-	"multivac.network/services/agents/services/groq"
+	"multivac.network/services/agents/services/ollama"
+	"multivac.network/services/agents/sessions"
 	"multivac.network/services/agents/store"
 	"net/http"
 	"os"
@@ -33,7 +34,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }
 
-var sessions = make([]*ChatSession, 0)
+var chatSessions = make([]*sessions.Session, 0)
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -55,7 +56,7 @@ func agentChat(writer http.ResponseWriter, request *http.Request) {
 		}
 		s := store.NewAgentStore()
 		agentModel := s.FindAgent(vars["agent"])
-		var agent = agents.NewAgent(groq.NewService("mixtral-8x7b-32768", os.Getenv("GROQ_API_KEY")), agentModel)
-		sessions = append(sessions, NewChatSession(vars["jwt"], ws, agent))
+		var agent = executors.NewAgent(ollama.NewService("dolphin-mistral"), agentModel)
+		chatSessions = append(chatSessions, sessions.NewSession(vars["jwt"], ws, agent))
 	}
 }

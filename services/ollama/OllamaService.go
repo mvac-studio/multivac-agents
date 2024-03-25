@@ -1,8 +1,9 @@
 package ollama
 
 import (
-	"belli/services"
 	"context"
+	"multivac.network/services/agents/services"
+	"os"
 	"time"
 )
 import "github.com/jmorganca/ollama/api"
@@ -15,7 +16,11 @@ type Service struct {
 
 // NewService creates a new Ollama Service
 func NewService(model string) services.ModelService {
+	_ = os.Setenv("OLLAMA_HOST", "http://ollama-service.default.svc.cluster.local:11434")
 	client, err := api.ClientFromEnvironment()
+	client.Pull(context.Background(), &api.PullRequest{Model: model}, func(response api.ProgressResponse) error {
+		return nil
+	})
 	if err != nil {
 		panic(err)
 	}

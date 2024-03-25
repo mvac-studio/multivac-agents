@@ -1,4 +1,4 @@
-package agents
+package executors
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"multivac.network/services/agents/graph/model"
+	"multivac.network/services/agents/messages"
 	"multivac.network/services/agents/services"
 	"net/http"
 	"net/url"
@@ -19,18 +20,28 @@ var embeddings embed.FS
 
 type Agent struct {
 	description    *model.Agent
+	ReplyChannel   chan *messages.WebSocketMessage
+	CommandChannel chan<- *messages.CommandType
 	prompt         string
 	thoughtPrompt  string
 	defaultPrompt  string
 	functionPrompt string
 	Thought        string
-	context        []services.Message
+	Context        []services.Message
+	ThoughtContext []services.Message
 	service        services.ModelService
 }
 
 func NewAgent(service services.ModelService, agent *model.Agent) *Agent {
 
-	result := &Agent{description: agent, prompt: agent.Prompt, service: service, context: make([]services.Message, 0)}
+	result := &Agent{
+		description:    agent,
+		prompt:         agent.Prompt,
+		service:        service,
+		Context:        make([]services.Message, 0),
+		ReplyChannel:   make(chan *messages.WebSocketMessage),
+		CommandChannel: make(chan<- *messages.CommandType),
+	}
 
 	thoughtPrompt, err := embeddings.ReadFile("embedded/prompts/thought-prompt")
 	defaultPrompt, err := embeddings.ReadFile("embedded/prompts/default")
@@ -39,13 +50,13 @@ func NewAgent(service services.ModelService, agent *model.Agent) *Agent {
 		panic(err)
 	}
 	log.Println(fmt.Sprintf("Agent Prompt: %s", agent.Prompt))
-	result.context = append(result.context, services.Message{Role: "system", Content: agent.Prompt})
+	result.Context = append(result.Context, services.Message{Role: "system", Content: agent.Prompt})
 	result.thoughtPrompt = string(thoughtPrompt)
 	result.defaultPrompt = string(defaultPrompt)
 	return result
 }
 
-func (agent *Agent) Chat(context string, text string) (reply Reply, err error) {
+func (agent *Agent) Chat(context string, text string) (err error) {
 
 	agent.processThoughts(context, text)
 	templateBuffer := bytes.NewBufferString("")
@@ -53,17 +64,20 @@ func (agent *Agent) Chat(context string, text string) (reply Reply, err error) {
 	err = defaultTemplate.Execute(templateBuffer, map[string]string{"prompt": agent.prompt})
 	rendered := templateBuffer.String()
 	log.Println(fmt.Sprintf("Default Prompt: %s", rendered))
-	agent.context = append(agent.context, services.Message{Role: "system", Content: rendered})
+	agent.Context = append(agent.Context, services.Message{Role: "system", Content: rendered})
 
 	summarizePrompt, err := embeddings.ReadFile("embedded/prompts/summarize-prompt")
-	agent.context = append(agent.context, services.Message{Role: "user", Content: string(summarizePrompt)})
-	request := services.Request{Messages: agent.context, Stream: false}
+	agent.Context = append(agent.Context, services.Message{Role: "system", Content: string(summarizePrompt)})
+	agent.Context = append(agent.Context, agent.ThoughtContext[len(agent.ThoughtContext)-1])
+	agent.Context = append(agent.Context, services.Message{Role: "user", Content: text})
+
+	request := services.Request{Messages: agent.Context, Stream: false}
 	err = agent.service.SendRequest(request, agent.responseHandler)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	log.Println(agent.description.Name)
-	return Reply{Agent: agent.description.Name, Content: agent.context[len(agent.context)-1].Content, Thought: agent.context[len(agent.context)-2].Content}, nil
+	return nil
 }
 
 func fetchInformation(index string, text string) string {
@@ -79,16 +93,25 @@ func fetchInformation(index string, text string) string {
 }
 
 func (agent *Agent) responseHandler(message services.Message) {
-	agent.context = append(agent.context, message)
+	agent.Context = append(agent.Context, message)
+	agent.ReplyChannel <- messages.Message("chat-response", messages.ReplyMessage{
+		Agent:   agent.description.Name,
+		Content: message.Content,
+	})
 }
 
 func (agent *Agent) thoughtHandler(message services.Message) {
-	log.Println(fmt.Sprintf("Thought: %s", message.Content))
-	agent.context = append(agent.context,
+
+	agent.ThoughtContext = append(agent.ThoughtContext,
 		services.Message{
 			Role:    "assistant",
 			Content: "<THOUGHT>" + message.Content + "</THOUGHT>",
 		})
+	agent.ReplyChannel <- messages.Message("thought-reply", messages.ReplyMessage{
+		Agent:   agent.description.Name,
+		Content: message.Content,
+	})
+
 }
 
 func (agent *Agent) processThoughts(context string, text string) {
