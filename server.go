@@ -6,7 +6,7 @@ import (
 	"log"
 	"multivac.network/services/agents/executors"
 	"multivac.network/services/agents/graph"
-	"multivac.network/services/agents/services/ollama"
+	"multivac.network/services/agents/services/groq"
 	"multivac.network/services/agents/sessions"
 	"multivac.network/services/agents/store"
 	"net/http"
@@ -56,7 +56,8 @@ func agentChat(writer http.ResponseWriter, request *http.Request) {
 		}
 		s := store.NewAgentStore()
 		agentModel := s.FindAgent(vars["agent"])
-		var agent = executors.NewAgent(ollama.NewService("dolphin-mistral"), agentModel)
+		apikey := os.Getenv("GROQ_API_KEY")
+		var agent = executors.NewAgent(groq.NewService("mixtral-8x7b-32768", apikey), agentModel)
 		chatSessions = append(chatSessions, sessions.NewSession(vars["jwt"], ws, agent))
 	}
 }
