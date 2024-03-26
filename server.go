@@ -27,7 +27,7 @@ func main() {
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
 	router := mux.NewRouter()
 	router.HandleFunc("/chat/{agent}/{jwt}", agentChat)
-	router.Handle("/", playground.Handler("GraphQL playground", "/agents/api/query"))
+	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", srv)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
