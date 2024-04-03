@@ -23,10 +23,10 @@ jobs:
         with:
           push: true
           tags: mvacstudio/multivac-agents:latest
-      - name: Set up kubectl
-        uses: actions/setup-kubectl@v1
-        with:
-          kubeconfig: ${{ secrets.KUBECONFIG }}
 
-      - name: Restart Kubernetes rollout
-        run: kubectl rollout restart deployment multivac-agents-deployment
+      - name: Rollout Deployment
+        uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBECONFIG }}
+        with:
+          args: rollout restart deployment multivac-agents-deployment
