@@ -24,9 +24,15 @@ jobs:
           push: true
           tags: mvacstudio/multivac-agents:latest
 
-      - name: Rollout Deployment
-        uses: actions-hub/kubectl@master
-        env:
-          KUBE_CONFIG: ${{ secrets.KUBECONFIG }}
+  deploy_to_kubernetes:
+    name: Deploy to Kubernetes
+    needs: build_and_push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Kubernetes Context
+        uses: azure/k8s-set-context@v1
         with:
-          args: rollout restart deployment multivac-agents-deployment
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+      - name: Deploy To Cluster
+        run: kubectl rollout restart deployment multivac-agents-deployment
