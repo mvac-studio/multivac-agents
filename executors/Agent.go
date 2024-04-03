@@ -58,6 +58,7 @@ func NewAgent(service services.ModelService, agent *model.Agent) *Agent {
 
 func (agent *Agent) Chat(context string, text string) (err error) {
 
+	agent.ReplyChannel <- messages.Message("thinking", messages.ReplyMessage{})
 	agent.processThoughts(context, text)
 	templateBuffer := bytes.NewBufferString("")
 	defaultTemplate, err := template.New("default-prompt").Parse(agent.defaultPrompt)
