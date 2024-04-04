@@ -84,7 +84,7 @@ func (agent *Agent) Chat(context string, text string) (err error) {
 func fetchInformation(index string, text string) string {
 	client := &http.Client{}
 	query := url.QueryEscape(text)
-	response, err := client.Get("http://multivac-embeddings-service.default.svc.cluster.local/search?index=" + index + "&q=" + query)
+	response, err := client.Get("http://multivac-embeddings-service.default.svc.cluster.local/context?index=" + index + "&q=" + query)
 	if err != nil {
 		log.Println(err)
 		return ""
