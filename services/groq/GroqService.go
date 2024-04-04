@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log"
 	"multivac.network/services/agents/services"
 	"net/http"
 	"time"
@@ -65,6 +66,7 @@ func (s *Service) SendRequest(request services.Request, handler func(response se
 	for _, message := range request.Messages {
 		groqRequest.Messages = append(groqRequest.Messages, Message{Role: message.Role, Content: message.Content})
 	}
+	log.Println(groqRequest)
 	data, err := json.Marshal(groqRequest)
 	if err != nil {
 		return err
@@ -77,9 +79,10 @@ func (s *Service) SendRequest(request services.Request, handler func(response se
 	resp, err := client.Do(r)
 	groqResponse := GroqResponse{}
 	body, err := io.ReadAll(resp.Body)
+	log.Println(resp.Body)
 	err = json.Unmarshal(body, &groqResponse)
 	if err != nil {
-		return nil
+		return err
 	}
 	handler(services.Message{
 		Role:      groqResponse.Choices[0].Message.Role,

@@ -60,24 +60,7 @@ func (agent *Agent) Chat(context string, text string) (err error) {
 
 	agent.ReplyChannel <- messages.Message("thinking", messages.ReplyMessage{})
 	agent.processThoughts(context, text)
-	templateBuffer := bytes.NewBufferString("")
-	defaultTemplate, err := template.New("default-prompt").Parse(agent.defaultPrompt)
-	err = defaultTemplate.Execute(templateBuffer, map[string]string{"prompt": agent.prompt})
-	rendered := templateBuffer.String()
-	log.Println(fmt.Sprintf("Default Prompt: %s", rendered))
-	agent.Context = append(agent.Context, services.Message{Role: "system", Content: rendered})
 
-	summarizePrompt, err := embeddings.ReadFile("embedded/prompts/summarize-prompt")
-	agent.Context = append(agent.Context, services.Message{Role: "system", Content: string(summarizePrompt)})
-	agent.Context = append(agent.Context, agent.ThoughtContext[len(agent.ThoughtContext)-1])
-	agent.Context = append(agent.Context, services.Message{Role: "user", Content: text})
-
-	request := services.Request{Messages: agent.Context, Stream: false}
-	err = agent.service.SendRequest(request, agent.responseHandler)
-	if err != nil {
-		return err
-	}
-	log.Println(agent.description.Name)
 	return nil
 }
 
@@ -101,18 +84,38 @@ func (agent *Agent) responseHandler(message services.Message) {
 	})
 }
 
-func (agent *Agent) thoughtHandler(message services.Message) {
-
-	agent.ThoughtContext = append(agent.ThoughtContext,
-		services.Message{
-			Role:    "assistant",
-			Content: "<THOUGHT>" + message.Content + "</THOUGHT>",
+func (agent *Agent) handlerFactory(text string) func(message services.Message) {
+	return func(message services.Message) {
+		agent.ThoughtContext = append(agent.ThoughtContext,
+			services.Message{
+				Role:    "assistant",
+				Content: "<THOUGHT>" + message.Content + "</THOUGHT>",
+			})
+		agent.ReplyChannel <- messages.Message("thought-reply", messages.ReplyMessage{
+			Agent:   agent.description.Name,
+			Content: message.Content,
 		})
-	agent.ReplyChannel <- messages.Message("thought-reply", messages.ReplyMessage{
-		Agent:   agent.description.Name,
-		Content: message.Content,
-	})
+		templateBuffer := bytes.NewBufferString("")
+		defaultTemplate, err := template.New("default-prompt").Parse(agent.defaultPrompt)
+		err = defaultTemplate.Execute(templateBuffer, map[string]string{"prompt": agent.prompt})
+		rendered := templateBuffer.String()
+		log.Println(fmt.Sprintf("Default Prompt: %s", rendered))
+		agent.Context = append(agent.Context, services.Message{Role: "system", Content: rendered})
 
+		summarizePrompt, err := embeddings.ReadFile("embedded/prompts/summarize-prompt")
+		agent.Context = append(agent.Context, services.Message{Role: "system", Content: string(summarizePrompt)})
+		agent.Context = append(agent.Context, agent.ThoughtContext[len(agent.ThoughtContext)-1])
+
+		agent.Context = append(agent.Context, services.Message{Role: "user", Content: text})
+
+		request := services.Request{Messages: agent.Context, Stream: false}
+		err = agent.service.SendRequest(request, agent.responseHandler)
+		if err != nil {
+			log.Println("error received from service")
+			log.Fatal(err)
+		}
+		log.Println(agent.description.Name)
+	}
 }
 
 func (agent *Agent) processThoughts(context string, text string) {
@@ -128,7 +131,7 @@ func (agent *Agent) processThoughts(context string, text string) {
 	reprompt := services.Message{Role: "user", Content: text}
 
 	thoughtRequest := services.Request{Messages: []services.Message{thoughtMessage, reprompt}, Stream: false}
-	err = agent.service.SendRequest(thoughtRequest, agent.thoughtHandler)
+	err = agent.service.SendRequest(thoughtRequest, agent.handlerFactory(text))
 
 	if err != nil {
 		panic(err)
