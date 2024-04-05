@@ -11,6 +11,8 @@ type Agent struct {
 	Engine      string `json:"engine"`
 }
 
+func (Agent) IsEntity() {}
+
 type Engine struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
