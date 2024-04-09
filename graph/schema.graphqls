@@ -2,7 +2,7 @@
 #
 # https://gqlgen.com/getting-started/
 
-type Agent @key(fields:"id") {
+type Agent {
   id: ID!
   name: String!
   description: String!
