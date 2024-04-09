@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
@@ -45,7 +46,8 @@ func NewAgentStore() *AgentStore {
 func (store *AgentStore) CreateAgent(agent *model.Agent) (*model.Agent, error) {
 	collection := store.client.Database("ngent").Collection("agents")
 	agent.Name = strings.ToLower(agent.Name)
-	_, err := collection.InsertOne(context.Background(), agent)
+	result, err := collection.InsertOne(context.Background(), agent)
+	agent.ID = result.InsertedID.(primitive.ObjectID).Hex()
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -104,7 +106,7 @@ func (store *AgentStore) FindAgent(name string) *model.Agent {
 }
 
 type AgentModel struct {
-	ID          string `bson:"_id"`
+	ID          string `bson:"_id,omitempty"`
 	Name        string `bson:"name"`
 	Key         string `bson:"key"`
 	Description string `bson:"description"`
