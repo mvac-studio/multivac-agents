@@ -20,6 +20,13 @@ type Engine struct {
 	Model       string `json:"model"`
 }
 
+type Group struct {
+	ID     string   `json:"id"`
+	Agents []*Agent `json:"agents,omitempty"`
+}
+
+func (Group) IsEntity() {}
+
 type Mutation struct {
 }
 

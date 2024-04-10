@@ -16,6 +16,11 @@ func (r *entityResolver) FindAgentByID(ctx context.Context, id string) (*model.A
 	panic(fmt.Errorf("not implemented: FindAgentByID - findAgentByID"))
 }
 
+// FindGroupByID is the resolver for the findGroupByID field finds agents by groupId.
+func (r *entityResolver) FindGroupByID(ctx context.Context, id string) (*model.Group, error) {
+	panic(fmt.Errorf("not implemented: FindGroupByID - findGroupByID"))
+}
+
 // Entity returns EntityResolver implementation.
 func (r *Resolver) Entity() EntityResolver { return &entityResolver{r} }
 

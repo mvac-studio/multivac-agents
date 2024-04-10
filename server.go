@@ -4,11 +4,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"log"
+	"multivac.network/services/agents/data"
 	"multivac.network/services/agents/executors"
 	"multivac.network/services/agents/graph"
 	"multivac.network/services/agents/services/groq"
 	"multivac.network/services/agents/sessions"
-	"multivac.network/services/agents/store"
 	"net/http"
 	"os"
 
@@ -54,7 +54,7 @@ func agentChat(writer http.ResponseWriter, request *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
-		s := store.NewAgentStore()
+		s := data.NewAgentStore()
 		agentModel := s.FindAgent(vars["agent"])
 		apikey := os.Getenv("GROQ_API_KEY")
 		var agent = executors.NewAgent(groq.NewService("mixtral-8x7b-32768", apikey), agentModel)

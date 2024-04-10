@@ -10,13 +10,13 @@ import (
 	"net/url"
 	"strings"
 
+	"multivac.network/services/agents/data"
 	"multivac.network/services/agents/graph/model"
-	"multivac.network/services/agents/store"
 )
 
 // CreateAgent is the resolver for the createAgent field.
 func (r *mutationResolver) CreateAgent(ctx context.Context, input model.NewAgent) (*model.Agent, error) {
-	agent := store.NewAgentStore()
+	agent := data.NewAgentStore()
 	return agent.CreateAgent(&model.Agent{
 		Name:        input.Name,
 		Description: input.Description,
@@ -28,7 +28,7 @@ func (r *mutationResolver) CreateAgent(ctx context.Context, input model.NewAgent
 
 // Agents is the resolver for the agents field.
 func (r *queryResolver) Agents(ctx context.Context) ([]*model.Agent, error) {
-	agents := store.NewAgentStore()
+	agents := data.NewAgentStore()
 	return agents.RetrieveAgents()
 }
 

@@ -34,3 +34,8 @@ input NewAgent {
 type Mutation {
   createAgent(input: NewAgent!): Agent!
 }
+
+extend type Group @key(fields: "id") {
+  id: ID! @external
+  agents: [Agent]
+}
