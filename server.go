@@ -7,7 +7,7 @@ import (
 	"multivac.network/services/agents/data"
 	"multivac.network/services/agents/executors"
 	"multivac.network/services/agents/graph"
-	"multivac.network/services/agents/services/groq"
+	"multivac.network/services/agents/providers/groq"
 	"multivac.network/services/agents/sessions"
 	"net/http"
 	"os"
@@ -26,7 +26,7 @@ func main() {
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
 	router := mux.NewRouter()
-	router.HandleFunc("/chat/{agent}/{jwt}", agentChat)
+	router.HandleFunc("/chat/{group}/{jwt}", agentChat)
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", srv)
 
@@ -34,7 +34,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }
 
-var chatSessions = make([]*sessions.Session, 0)
+var chatSessions = make([]*sessions.GroupContext, 0)
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -46,8 +46,9 @@ func agentChat(writer http.ResponseWriter, request *http.Request) {
 
 	vars := mux.Vars(request)
 	log.Println(vars["jwt"])
-	log.Println(vars["agent"])
+	log.Println(vars["group"])
 	if validUser(vars["jwt"]) {
+		//TODO (jkelly): validate the actual authorization header
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 		log.Println("Upgrading connection:", request.RemoteAddr)
 		ws, err := upgrader.Upgrade(writer, request, nil)
