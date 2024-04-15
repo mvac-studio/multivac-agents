@@ -25,11 +25,11 @@ func NewService(model string, apikey string) providers.ModelProvider {
 }
 
 // SendRequest implement the ModelProvider.SendRequest method for the Service type
-func (s *Service) SendRequest(request providers.Request, output chan providers.Message) error {
+func (s *Service) SendRequest(request providers.Request, output chan *providers.Message) error {
 	client := &http.Client{}
-	groqRequest := GroqRequest{Messages: make([]providers.Message, 0), Model: s.model}
+	groqRequest := GroqRequest{Messages: make([]GroqMessage, 0), Model: s.model}
 	for _, message := range request.Messages {
-		groqRequest.Messages = append(groqRequest.Messages, providers.Message{Role: message.Role, Content: message.Content})
+		groqRequest.Messages = append(groqRequest.Messages, GroqMessage{Role: message.Role, Content: message.Content})
 	}
 	log.Println(groqRequest)
 	data, err := json.Marshal(groqRequest)
@@ -49,7 +49,7 @@ func (s *Service) SendRequest(request providers.Request, output chan providers.M
 	if err != nil {
 		return err
 	}
-	output <- providers.Message{
+	output <- &providers.Message{
 		Role:      groqResponse.Choices[0].Message.Role,
 		Content:   groqResponse.Choices[0].Message.Content,
 		Timestamp: time.Now().UnixMilli(),

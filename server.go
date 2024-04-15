@@ -1,19 +1,21 @@
 package main
 
 import (
+	"context"
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 	"log"
 	"multivac.network/services/agents/data"
-	"multivac.network/services/agents/executors"
 	"multivac.network/services/agents/graph"
 	"multivac.network/services/agents/providers/groq"
 	"multivac.network/services/agents/sessions"
 	"net/http"
 	"os"
-
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/playground"
 )
 
 const defaultPort = "8080"
@@ -23,6 +25,8 @@ func main() {
 	if port == "" {
 		port = defaultPort
 	}
+
+	initializeData()
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
 	router := mux.NewRouter()
@@ -34,7 +38,26 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }
 
-var chatSessions = make([]*sessions.GroupContext, 0)
+func initializeData() {
+	clientOptions := options.Client()
+
+	clientOptions.ApplyURI("mongodb+srv://db-ngent-io.rcarmov.mongodb.net")
+	clientOptions.SetRetryWrites(true)
+	clientOptions.SetAppName("db-ngent-io")
+	clientOptions.SetWriteConcern(writeconcern.Majority())
+	clientOptions.SetAuth(options.Credential{
+		Username: "admin",
+		Password: "G6VuD^us",
+	})
+
+	client, err := mongo.Connect(context.Background(), clientOptions)
+	if err != nil {
+		panic(err)
+	}
+	data.SetDatabase(client.Database("ngent"))
+}
+
+var contexts = make([]*sessions.GroupContext, 0)
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -55,10 +78,15 @@ func agentChat(writer http.ResponseWriter, request *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
-		s := data.NewAgentStore()
-		agentModel := s.FindAgent(vars["agent"])
+		agentStore := data.NewAgentStore()
+		groupStore := data.NewGroupDataStore()
+		group, err := groupStore.GetGroup(vars["group"])
+		agents, err := agentStore.GetAgentsByIds(group.Agents)
+
 		apikey := os.Getenv("GROQ_API_KEY")
-		var agent = executors.NewAgent(groq.NewService("mixtral-8x7b-32768", apikey), agentModel)
-		chatSessions = append(chatSessions, sessions.NewSession(vars["jwt"], ws, agent))
+
+		provider := groq.NewService("mixtral-8x7b-32768", apikey)
+		var context = sessions.NewGroupContext(group, ws, provider, agents)
+		contexts = append(contexts, context)
 	}
 }

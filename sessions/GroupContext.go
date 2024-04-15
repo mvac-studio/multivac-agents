@@ -1,23 +1,43 @@
 package sessions
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"log"
+	"multivac.network/services/agents/data"
+	"multivac.network/services/agents/executors"
+	"multivac.network/services/agents/graph/model"
+	"multivac.network/services/agents/messages"
 	"multivac.network/services/agents/providers"
+	"strings"
+	"text/template"
 )
 
 type GroupContext struct {
-	group    string
+	group    *data.GroupModel
+	agents   []*model.Agent
 	socket   *websocket.Conn
 	model    providers.ModelProvider
-	Input    chan providers.Message
-	internal chan providers.Message
-	Output   chan providers.Message
+	internal chan *providers.Message
+	Input    chan *providers.Message
+	Output   chan *messages.WebSocketMessage
+	Status   chan *messages.WebSocketMessage
+	messages []providers.Message
 }
 
-func NewGroupContext(group string, socket *websocket.Conn, provider providers.ModelProvider) *GroupContext {
-	result := &GroupContext{group: group, socket: socket, model: provider}
+func NewGroupContext(group *data.GroupModel, socket *websocket.Conn, provider providers.ModelProvider, agents []*model.Agent) *GroupContext {
+	result := &GroupContext{
+		group:    group,
+		agents:   agents,
+		socket:   socket,
+		model:    provider,
+		messages: make([]providers.Message, 0),
+		internal: make(chan *providers.Message),
+		Input:    make(chan *providers.Message),
+		Output:   make(chan *messages.WebSocketMessage),
+	}
 	go result.start()
 	return result
 }
@@ -29,17 +49,35 @@ func (group *GroupContext) start() {
 	go group.initializeSocket()
 }
 
-func (group *GroupContext) initializeInput() {
+func (c *GroupContext) initializeInput() {
+	agentDescriptions := strings.Builder{}
+	for _, agent := range c.agents {
+		agentDescriptions.WriteString(fmt.Sprintf("%s:%s %s\n", agent.ID, agent.Name, agent.Description))
+	}
+
 	for {
 		select {
-		case message := <-group.Input:
+		case message := <-c.Input:
 			request := providers.Request{Messages: make([]providers.Message, 0), Stream: false}
 
-			// TODO: create a new message with the group context, agent list, and instructions to delegate
-			// request.Messages = append(request.Messages, message)
+			content, err := generateTemplate(struct {
+				Group       string
+				Description string
+				Message     string
+				Agents      string
+			}{
+				Group:       c.group.Name,
+				Description: c.group.Description,
+				Message:     message.Content,
+				Agents:      agentDescriptions.String(),
+			})
 
-			request.Messages = append(request.Messages, message)
-			err := group.model.SendRequest(request, group.internal)
+			request.Messages = append(request.Messages, providers.Message{
+				Role:    "user",
+				Content: content,
+			})
+
+			err = c.model.SendRequest(request, c.internal)
 			if err != nil {
 				log.Println(err)
 				continue
@@ -48,12 +86,36 @@ func (group *GroupContext) initializeInput() {
 	}
 }
 
-func (group *GroupContext) initializeOutput() {
+func generateTemplate(data interface{}) (string, error) {
+	t, err := template.New("group-template").Parse(`
+		You are a router for a group called '{{.Group}}'. The group is a collection of agents that are 
+		working together to solve a problem. The group is described as '{{.Description}}'. The message 
+		"{{.Message}}" was received by the group. The agents in the group are '{{.Agents}}'. 
+		Decide which agents should respond and to what prompt with a score between 0 and 1 of how confident you are they 
+		are the right agent. Confidence scores should be based on the description of the agent relative to the request. 
+		Higher scores are more relevant agents than lower.
+		Respond with a JSON array of {"id": "<agent id>", "prompt": "<prompt>", "confidence": <confidence score>} pairs. 
+		Respond only with the proper formatted JSON.
+	`)
+	if err != nil {
+		return "", err
+	}
+
+	buffer := &bytes.Buffer{}
+
+	err = t.Execute(buffer, data)
+	if err != nil {
+		log.Println(err)
+	}
+	return buffer.String(), err
+}
+
+func (c *GroupContext) initializeOutput() {
 	for {
 		select {
-		case message := <-group.Output:
+		case message := <-c.Output:
 			output, err := json.Marshal(message)
-			err = group.emitMessage(string(output))
+			err = c.emitMessage(string(output))
 			if err != nil {
 				log.Println(err)
 			}
@@ -61,17 +123,17 @@ func (group *GroupContext) initializeOutput() {
 	}
 }
 
-func (group *GroupContext) emitMessage(message string) error {
-	return group.socket.WriteMessage(websocket.TextMessage, []byte(message))
+func (c *GroupContext) emitMessage(message string) error {
+	return c.socket.WriteMessage(websocket.TextMessage, []byte(message))
 }
 
-func (group *GroupContext) Close() error {
-	return group.socket.Close()
+func (c *GroupContext) Close() error {
+	return c.socket.Close()
 }
 
-func (group *GroupContext) initializeSocket() {
+func (c *GroupContext) initializeSocket() {
 	for {
-		_, p, err := group.socket.ReadMessage()
+		_, p, err := c.socket.ReadMessage()
 		if err != nil {
 			log.Println(err)
 			break
@@ -82,16 +144,53 @@ func (group *GroupContext) initializeSocket() {
 			log.Println(err)
 			continue
 		}
-		group.Input <- message
+		c.Input <- &message
 	}
 }
 
-func (group *GroupContext) initializeInternal() {
+func (c *GroupContext) initializeInternal() {
 	for {
 		select {
-		case message := <-group.internal:
-			// TODO: Instead parse and dispatch to the agents in the internal response.
-			group.Output <- message
+		case message := <-c.internal:
+			var agents []AgentSelection
+			err := json.Unmarshal([]byte(message.Content), &agents)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			for _, agent := range agents {
+				if agent.Confidence < 0.8 {
+					continue
+				}
+				for _, a := range c.agents {
+					if a.ID != agent.Id {
+						continue
+					}
+					if err != nil {
+						log.Println(err)
+						continue
+					}
+
+					c.Output <- messages.Message("status", StatusMessage{
+						Status:  "typing",
+						Content: fmt.Sprintf("%s is responding", a.Name)})
+
+					a := executors.NewAgent(c.model, a, c.Output)
+					a.Chat("", agent.Prompt)
+				}
+			}
+			fmt.Printf("Internal message: %s\n", message.Content)
 		}
 	}
+}
+
+type StatusMessage struct {
+	Status  string `json:"status"`
+	Content string `json:"content"`
+}
+
+type AgentSelection struct {
+	Id         string  `json:"id"`
+	Prompt     string  `json:"prompt"`
+	Confidence float64 `json:"confidence"`
 }
