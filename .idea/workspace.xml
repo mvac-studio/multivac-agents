@@ -5,23 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2d0b90a1-de14-4ceb-a013-a520c9730fc5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.github/workflows/notify-commits-pushed.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.github/workflows/notify-deployment-complete.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.github/workflows/notify-in-progress.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.mirrord/mirrord.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.mirrord/targetless.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sessions/WebSocketProcessor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/copilot/chatSessions/00000000000.xd" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/copilot/chatSessions/blobs/version" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/copilot/chatSessions/xd.lck" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/EmbeddingStore.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/executors/Agent.go" beforeDir="false" afterPath="$PROJECT_DIR$/executors/Agent.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/service/groups-service.pb.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/service/groups-service_grpc.pb.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sessions/GroupContext.go" beforeDir="false" afterPath="$PROJECT_DIR$/sessions/GroupContext.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/docker-image.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/docker-image.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/notify-deployment-complete.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/notify-in-progress.yaml" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,7 +44,7 @@
     "RunOnceActivity.go.migrated.go.modules.settings": "true",
     "RunOnceActivity.go.modules.automatic.dependencies.download": "true",
     "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "rewrite",
     "go.import.settings.migrated": "true",
     "last_opened_file_path": "/home/jkelly/GolandProjects/multivac-services/multivac-agents",
     "node.js.detected.package.eslint": "true",
