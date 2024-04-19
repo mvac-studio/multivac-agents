@@ -1,0 +1,13 @@
+name: Notify Commits Pushed
+on:
+  push:
+jobs:
+  message:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discord Webhook Action
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          content: ">>> [${{ github.repository }}]\n:arrow_up:  **pushed to ${{ github.ref_name }} branch**"
+

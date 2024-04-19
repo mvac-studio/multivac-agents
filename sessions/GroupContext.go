@@ -16,34 +16,46 @@ import (
 )
 
 type GroupContext struct {
-	group    *data.GroupModel
-	agents   []*model.Agent
-	socket   *websocket.Conn
-	model    providers.ModelProvider
-	internal chan *providers.Message
-	Input    chan *providers.Message
-	Output   chan *messages.WebSocketMessage
-	Status   chan *messages.WebSocketMessage
-	messages []providers.Message
+	group              *data.GroupModel
+	agents             []*executors.Agent
+	socket             *websocket.Conn
+	model              providers.ModelProvider
+	routing            chan *providers.Message
+	evaluationResponse chan *providers.Message
+	Evaluation         chan *providers.Message
+	Input              chan *providers.Message
+	Output             chan *messages.WebSocketMessage
+	Status             chan *messages.WebSocketMessage
+	messages           []providers.Message
 }
 
 func NewGroupContext(group *data.GroupModel, socket *websocket.Conn, provider providers.ModelProvider, agents []*model.Agent) *GroupContext {
+	agentExecutors := make([]*executors.Agent, 0)
+	outputChannel := make(chan *messages.WebSocketMessage)
+	inputChannel := make(chan *providers.Message)
+	evaluationChannel := make(chan *providers.Message)
+	evaluationResponseChannel := make(chan *providers.Message)
+	for _, agent := range agents {
+		agentExecutors = append(agentExecutors, executors.NewAgent(provider, agent, outputChannel, evaluationChannel))
+	}
 	result := &GroupContext{
-		group:    group,
-		agents:   agents,
-		socket:   socket,
-		model:    provider,
-		messages: make([]providers.Message, 0),
-		internal: make(chan *providers.Message),
-		Input:    make(chan *providers.Message),
-		Output:   make(chan *messages.WebSocketMessage),
+		group:              group,
+		agents:             agentExecutors,
+		socket:             socket,
+		model:              provider,
+		messages:           make([]providers.Message, 0),
+		routing:            make(chan *providers.Message),
+		Input:              inputChannel,
+		Output:             outputChannel,
+		Evaluation:         evaluationChannel,
+		evaluationResponse: evaluationResponseChannel,
 	}
 	go result.start()
 	return result
 }
 
 func (group *GroupContext) start() {
-	go group.initializeInternal()
+	go group.initializeRouting()
 	go group.initializeOutput()
 	go group.initializeInput()
 	go group.initializeSocket()
@@ -52,7 +64,7 @@ func (group *GroupContext) start() {
 func (c *GroupContext) initializeInput() {
 	agentDescriptions := strings.Builder{}
 	for _, agent := range c.agents {
-		agentDescriptions.WriteString(fmt.Sprintf("%s:%s %s\n", agent.ID, agent.Name, agent.Description))
+		agentDescriptions.WriteString(fmt.Sprintf("%s:%s %s\n", agent.Descriptor.ID, agent.Descriptor.Name, agent.Descriptor.Description))
 	}
 
 	for {
@@ -77,7 +89,7 @@ func (c *GroupContext) initializeInput() {
 				Content: content,
 			})
 
-			err = c.model.SendRequest(request, c.internal)
+			err = c.model.SendRequest(request, c.routing)
 			if err != nil {
 				log.Println(err)
 				continue
@@ -148,10 +160,10 @@ func (c *GroupContext) initializeSocket() {
 	}
 }
 
-func (c *GroupContext) initializeInternal() {
+func (c *GroupContext) initializeRouting() {
 	for {
 		select {
-		case message := <-c.internal:
+		case message := <-c.routing:
 			var agents []AgentSelection
 			err := json.Unmarshal([]byte(message.Content), &agents)
 			if err != nil {
@@ -163,7 +175,7 @@ func (c *GroupContext) initializeInternal() {
 					continue
 				}
 				for _, a := range c.agents {
-					if a.ID != agent.Id {
+					if a.Descriptor.ID != agent.Id {
 						continue
 					}
 					if err != nil {
@@ -173,9 +185,8 @@ func (c *GroupContext) initializeInternal() {
 
 					c.Output <- messages.Message("status", StatusMessage{
 						Status:  "typing",
-						Content: fmt.Sprintf("%s is responding", a.Name)})
+						Content: fmt.Sprintf("%s is responding", a.Descriptor.Name)})
 
-					a := executors.NewAgent(c.model, a, c.Output)
 					a.Chat("", agent.Prompt)
 				}
 			}
