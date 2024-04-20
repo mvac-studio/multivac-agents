@@ -62,16 +62,8 @@ func NewAgent(service providers.ModelProvider, agent *model.Agent, output chan *
 
 func (agent *Agent) Chat(context string, text string) (err error) {
 
-	agent.Context = append(agent.Context, providers.Message{Role: "user", Content: text})
-
-	request := providers.Request{Messages: agent.Context, Stream: false}
-
-	err = agent.service.SendRequest(request, agent.Internal)
-	if err != nil {
-		log.Println("error received from service")
-		log.Fatal(err)
-	}
-	return err
+	agent.Internal <- &providers.Message{Role: "user", Content: text}
+	return nil
 }
 
 func fetchInformation(index string, text string) string {

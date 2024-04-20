@@ -9,5 +9,5 @@ jobs:
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          content: ">>> [${{ github.repository }}]\n:arrow_up:  **pushed to ${{ github.ref_name }} branch**"
+          content: ">>> [${{ github.repository }}]\n:arrow_up:  **commits pushed to ${{ github.ref_name }} branch**"
 

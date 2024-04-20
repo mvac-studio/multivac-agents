@@ -2,6 +2,12 @@ package messages
 
 import "time"
 
-func Message(t string, p interface{}) *WebSocketMessage {
-	return &WebSocketMessage{Type: t, Created: time.Now().UnixMilli(), Payload: p}
+type Message struct {
+	Type    string      `json:"type"`
+	Created int64       `json:"created"`
+	Payload interface{} `json:"payload"`
+}
+
+func CreateMessage(t string, p interface{}) *Message {
+	return &Message{Type: t, Created: time.Now().UnixMilli(), Payload: p}
 }

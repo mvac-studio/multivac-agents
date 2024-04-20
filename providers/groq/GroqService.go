@@ -25,7 +25,7 @@ func NewService(model string, apikey string) providers.ModelProvider {
 }
 
 // SendRequest implement the ModelProvider.SendRequest method for the Service type
-func (s *Service) SendRequest(request providers.Request, output chan *providers.Message) error {
+func (s *Service) SendRequest(request providers.Request) (*providers.Message, error) {
 	client := &http.Client{}
 	groqRequest := GroqRequest{Messages: make([]GroqMessage, 0), Model: s.model}
 	for _, message := range request.Messages {
@@ -34,7 +34,7 @@ func (s *Service) SendRequest(request providers.Request, output chan *providers.
 	log.Println(groqRequest)
 	data, err := json.Marshal(groqRequest)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	r, err := http.NewRequest("POST", "https://api.groq.com/openai/v1/chat/completions", bytes.NewReader(data))
@@ -47,12 +47,12 @@ func (s *Service) SendRequest(request providers.Request, output chan *providers.
 	log.Println(resp.Body)
 	err = json.Unmarshal(body, &groqResponse)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	output <- &providers.Message{
+	return &providers.Message{
 		Role:      groqResponse.Choices[0].Message.Role,
 		Content:   groqResponse.Choices[0].Message.Content,
 		Timestamp: time.Now().UnixMilli(),
-	}
-	return nil
+	}, nil
+
 }
