@@ -10,20 +10,20 @@ import (
 	"strings"
 )
 
-type AgentStore struct {
+type AgentDataStore struct {
 	collection *mongo.Collection
 }
 
-func NewAgentStore() *AgentStore {
+func NewAgentDataStore() *AgentDataStore {
 	db := GetDatabase()
-	return &AgentStore{
+	return &AgentDataStore{
 		collection: db.Collection("agents"),
 	}
 
 }
 
 // CreateAgent Creates a new agent
-func (store *AgentStore) CreateAgent(agent *model.Agent) (*model.Agent, error) {
+func (store *AgentDataStore) CreateAgent(agent *model.Agent) (*model.Agent, error) {
 
 	agent.Name = strings.ToLower(agent.Name)
 	result, err := store.collection.InsertOne(context.Background(), agent)
@@ -36,7 +36,7 @@ func (store *AgentStore) CreateAgent(agent *model.Agent) (*model.Agent, error) {
 }
 
 // RetrieveAgents Retrieves all agents
-func (store *AgentStore) RetrieveAgents() ([]*model.Agent, error) {
+func (store *AgentDataStore) RetrieveAgents() ([]*model.Agent, error) {
 	cursor, err := store.collection.Find(context.Background(), bson.M{})
 	if err != nil {
 		log.Fatal(err)
@@ -65,8 +65,8 @@ func (store *AgentStore) RetrieveAgents() ([]*model.Agent, error) {
 	return results, nil
 }
 
-func (store *AgentStore) GetAgentsByIds(ids []string) ([]*model.Agent, error) {
-	var results []*model.Agent
+func (store *AgentDataStore) GetAgentsByIds(ids []string) ([]*AgentModel, error) {
+	var results []*AgentModel
 	oids := make([]primitive.ObjectID, 0)
 	for _, id := range ids {
 		oid, err := primitive.ObjectIDFromHex(id)
@@ -82,26 +82,11 @@ func (store *AgentStore) GetAgentsByIds(ids []string) ([]*model.Agent, error) {
 		log.Fatal(err)
 		return nil, err
 	}
-	for cursor.Next(context.Background()) {
-		var agent AgentModel
-		err := cursor.Decode(&agent)
-		if err != nil {
-			log.Fatal(err)
-			return nil, err
-		}
-		results = append(results, &model.Agent{
-			ID:          agent.ID,
-			Name:        agent.Name,
-			Key:         agent.Key,
-			Description: agent.Description,
-			Engine:      agent.Engine,
-			Prompt:      agent.Prompt,
-		})
-	}
-	return results, nil
+	err = cursor.All(context.Background(), &results)
+	return results, err
 }
 
-func (store *AgentStore) FindAgentById(id string) *model.Agent {
+func (store *AgentDataStore) FindAgentById(id string) *model.Agent {
 
 	var agent AgentModel
 	oid, err := primitive.ObjectIDFromHex(id)
@@ -121,7 +106,7 @@ func (store *AgentStore) FindAgentById(id string) *model.Agent {
 
 }
 
-func (store *AgentStore) FindAgent(name string) *model.Agent {
+func (store *AgentDataStore) FindAgent(name string) *model.Agent {
 
 	var agent AgentModel
 	err := store.collection.FindOne(context.Background(), bson.M{"key": strings.ToLower(name)}).Decode(&agent)

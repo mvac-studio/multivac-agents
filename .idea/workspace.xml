@@ -4,7 +4,33 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2d0b90a1-de14-4ceb-a013-a520c9730fc5" name="Changes" comment="" />
+    <list default="true" id="2d0b90a1-de14-4ceb-a013-a520c9730fc5" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/messages/AgentMessage.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/messages/ConversationMessage.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/messages/SocketMessage.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/processors/AgentProcessor.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/processors/GroupProcessor.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/processors/Input.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/processors/Output.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/processors/Processor.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/processors/SocketInputProcessor.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/processors/SocketOutputProcessor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/notify-commits-pushed.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/notify-commits-pushed.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/965f8540-f4d7-4bf9-9d2b-b483b43a5eea.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/965f8540-f4d7-4bf9-9d2b-b483b43a5eea.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/AgentStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/data/AgentDataStore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/executors/Agent.go" beforeDir="false" afterPath="$PROJECT_DIR$/executors/Agent.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graph/schema.resolvers.go" beforeDir="false" afterPath="$PROJECT_DIR$/graph/schema.resolvers.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/Message.go" beforeDir="false" afterPath="$PROJECT_DIR$/messages/Message.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/ReplyMessage.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/WebSocketMessage.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/providers/ModelService.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/ModelService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/providers/Request.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/Request.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/providers/groq/GroqService.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/groq/GroqService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sessions/GroupContext.go" beforeDir="false" afterPath="$PROJECT_DIR$/sessions/GroupContext.go" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -18,6 +44,9 @@
     </option>
   </component>
   <component name="GOROOT" url="file://$USER_HOME$/sdk/go1.21.0" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 1
 }</component>
@@ -26,31 +55,35 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultGoTemplateProperty": "Go File",
-    "Go Build.go build belli.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "RunOnceActivity.go.modules.automatic.dependencies.download": "true",
-    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "go.import.settings.migrated": "true",
-    "last_opened_file_path": "/home/jkelly/GolandProjects/belli/agents/embedded/prompts",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
+    &quot;Go Build.go build belli.executor&quot;: &quot;Run&quot;,
+    &quot;Go Build.go build multivac.network/services/agents.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.automatic.dependencies.download&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;rewrite&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/jkelly/GolandProjects/multivac-services/multivac-agents&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mongo"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mongo&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/agents/embedded/prompts" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -62,28 +95,15 @@
     </key>
   </component>
   <component name="RunManager">
-    <configuration name="go build belli" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
+    <configuration name="go build multivac.network/services/agents" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
       <module name="belli" />
       <working_directory value="$PROJECT_DIR$" />
-      <envs>
-        <env name="AUTH_CLIENT_ID" value="5bIkIuE4n229BeROZ12aPppKjdNNzTZV" />
-        <env name="AUTH_CLIENT_SECRET" value="de3PbTCYNvm_i3VUnsYQAG1w6RHLf9QmwLcLU13s7pUh-TqdvqM9FvXZebCL3VcF" />
-        <env name="AUTH_DOMAIN" value="dev-qqza0qh0olb1esh4.us.auth0.com" />
-        <env name="GROQ_API_KEY" value="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" />
-      </envs>
       <kind value="PACKAGE" />
-      <package value="belli" />
+      <package value="multivac.network/services/agents" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <method v="2" />
     </configuration>
-  </component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="bundled-gosdk-467a64f6063b-ee0e143f3e2b-org.jetbrains.plugins.go.sharedIndexes.bundled-GO-233.11799.228" />
-      </set>
-    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TypeScriptGeneratedFilesManager">

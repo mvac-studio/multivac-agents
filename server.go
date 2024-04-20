@@ -12,8 +12,8 @@ import (
 	"log"
 	"multivac.network/services/agents/data"
 	"multivac.network/services/agents/graph"
+	"multivac.network/services/agents/processors"
 	"multivac.network/services/agents/providers/groq"
-	"multivac.network/services/agents/sessions"
 	"net/http"
 	"os"
 )
@@ -57,7 +57,7 @@ func initializeData() {
 	data.SetDatabase(client.Database("ngent"))
 }
 
-var contexts = make([]*sessions.GroupContext, 0)
+var contexts = make([]*processors.GroupProcessor, 0)
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -78,15 +78,30 @@ func agentChat(writer http.ResponseWriter, request *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
-		agentStore := data.NewAgentStore()
+
 		groupStore := data.NewGroupDataStore()
-		group, err := groupStore.GetGroup(vars["group"])
-		agents, err := agentStore.GetAgentsByIds(group.Agents)
+		groupModel, err := groupStore.GetGroup(vars["group"])
+		agentStore := data.NewAgentDataStore()
+		agents, err := agentStore.GetAgentsByIds(groupModel.Agents)
 
 		apikey := os.Getenv("GROQ_API_KEY")
-
 		provider := groq.NewService("mixtral-8x7b-32768", apikey)
-		var context = sessions.NewGroupContext(group, ws, provider, agents)
-		contexts = append(contexts, context)
+
+		socketInput := processors.NewSocketInputProcessor(ws)
+		socketOutput := processors.NewSocketOutputProcessor(ws)
+		group := processors.NewGroupProcessor(groupModel, provider)
+		socketInput.ConversationOutput.To(group.Input)
+
+		for _, agentModel := range agents {
+			agent := processors.NewAgentProcessor(agentModel, provider)
+			agent.To(socketOutput.AgentInput)
+			err := group.AddAgent(agent)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+		}
+
+		contexts = append(contexts, group)
 	}
 }

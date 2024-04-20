@@ -16,7 +16,7 @@ import (
 
 // CreateAgent is the resolver for the createAgent field.
 func (r *mutationResolver) CreateAgent(ctx context.Context, input model.NewAgent) (*model.Agent, error) {
-	agent := data.NewAgentStore()
+	agent := data.NewAgentDataStore()
 	return agent.CreateAgent(&model.Agent{
 		Name:        input.Name,
 		Description: input.Description,
@@ -28,7 +28,7 @@ func (r *mutationResolver) CreateAgent(ctx context.Context, input model.NewAgent
 
 // Agents is the resolver for the agents field.
 func (r *queryResolver) Agents(ctx context.Context) ([]*model.Agent, error) {
-	agents := data.NewAgentStore()
+	agents := data.NewAgentDataStore()
 	return agents.RetrieveAgents()
 }
 
