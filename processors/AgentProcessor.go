@@ -1,6 +1,7 @@
 package processors
 
 import (
+	"fmt"
 	"log"
 	"multivac.network/services/agents/data"
 	"multivac.network/services/agents/messages"
@@ -21,7 +22,10 @@ func NewAgentProcessor(agentModel *data.AgentModel, provider providers.ModelProv
 		Context:    make([]providers.Message, 0),
 		provider:   provider,
 	}
-	processor.Context = append(processor.Context, providers.Message{Role: "system", Content: agentModel.Prompt})
+	processor.Context = append(processor.Context, providers.Message{
+		Role:    "system",
+		Content: fmt.Sprintf("Your name is %s. %s", agentModel.Name, agentModel.Prompt),
+	})
 	processor.Processor = NewProcessor[*messages.ConversationMessage, *messages.AgentMessage](processor.Process)
 	return processor
 }
