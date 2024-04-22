@@ -28,7 +28,10 @@ func NewAgentProcessor(agentModel *data.AgentModel, provider providers.ModelProv
 
 func (ap *AgentProcessor) Process(message *messages.ConversationMessage) (*messages.AgentMessage, error) {
 
-	ap.Context = append(ap.Context, providers.Message{Role: "user", Content: message.Content})
+	for _, context := range message.Context {
+		ap.Context = append(ap.Context, providers.Message{Role: context.Role, Content: context.Content})
+	}
+
 	request := providers.Request{Messages: ap.Context, Stream: false}
 
 	response, err := ap.provider.SendRequest(request)

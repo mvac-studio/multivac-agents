@@ -1,12 +1,14 @@
 package processors
 
-import "log"
+import (
+	"log"
+)
 
 type ProcessorAction[IN any, OUT any | *any] interface {
 	Process(input IN) OUT
 }
 
-type Processor[IN any, OUT any | *any] struct {
+type Processor[IN any, OUT any] struct {
 	ProcessorAction[IN, OUT]
 	*Input[IN]
 	*Output[OUT]
@@ -29,6 +31,7 @@ func (o Processor[IN, OUT]) initialize() {
 			select {
 			case input := <-o.input:
 				result, err := o.process(input)
+
 				if err != nil {
 					log.Println(err)
 					continue

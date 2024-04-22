@@ -14,7 +14,10 @@ import (
 
 type GroupProcessor struct {
 	*Input[*messages.ConversationMessage]
+	Loopback     *Input[*messages.AgentMessage]
+	FinalOutput  *Output[*messages.AgentMessage]
 	Model        *data.GroupModel
+	Context      []*messages.ConversationMessage
 	provider     providers.ModelProvider
 	agents       []*AgentProcessor
 	descriptions string
@@ -23,17 +26,23 @@ type GroupProcessor struct {
 // NewGroupProcessor creates a new group processor
 func NewGroupProcessor(group *data.GroupModel, provider providers.ModelProvider) *GroupProcessor {
 	processor := &GroupProcessor{
-		Model:    group,
-		provider: provider,
-		agents:   make([]*AgentProcessor, 0),
+		Model:       group,
+		Context:     make([]*messages.ConversationMessage, 0),
+		FinalOutput: NewOutputProcessor[*messages.AgentMessage](),
+		provider:    provider,
+		agents:      make([]*AgentProcessor, 0),
 	}
 	processor.Input = NewInputProcessor[*messages.ConversationMessage]()
+	processor.Loopback = NewInputProcessor[*messages.AgentMessage]()
+	processor.FinalOutput = NewOutputProcessor[*messages.AgentMessage]()
 	processor.initialize()
+	processor.initializeLoopback()
 	return processor
 }
 
 // AddAgent adds an agent to the group
 func (gp *GroupProcessor) AddAgent(agent *AgentProcessor) error {
+	agent.To(gp.Loopback)
 	gp.agents = append(gp.agents, agent)
 	gp.updateDescriptions()
 	return nil
@@ -77,7 +86,7 @@ func generateTemplate(data interface{}) (string, error) {
 		Decide which agents should respond and to what prompt with a score between 0 and 1 of how confident you are they
 		are the right agent. Confidence scores should be based on the description of the agent relative to the request.
 		Higher scores are more relevant agents than lower.
-		Respond with a JSON array of {"id": "<agent id>", "prompt": "<prompt>", "confidence": <confidence score>} pairs.
+		Respond with a JSON array of {"id": "<agent id>","name":"<agent name>", "prompt": "<prompt>", "confidence": <confidence score>} pairs.
 		Respond only with the proper formatted JSON.
 	`)
 	if err != nil {
@@ -104,6 +113,7 @@ func (gp *GroupProcessor) updateDescriptions() {
 func (gp *GroupProcessor) route(message *messages.ConversationMessage, response *providers.Message) {
 	var agents []AgentSelection
 	err := json.Unmarshal([]byte(response.Content), &agents)
+	message.Context = gp.Context
 	for _, agent := range agents {
 		if agent.Confidence < 0.8 {
 			continue
@@ -117,6 +127,7 @@ func (gp *GroupProcessor) route(message *messages.ConversationMessage, response 
 				continue
 			}
 
+			message.Context = append(message.Context, &messages.ConversationMessage{Role: "user", Content: agent.Prompt})
 			a.input <- message
 		}
 	}
@@ -137,8 +148,25 @@ func (gp *GroupProcessor) initialize() {
 	}()
 }
 
+// initializeLoopback initializes the loopback channel for processing
+func (gp *GroupProcessor) initializeLoopback() {
+	go func() {
+		for {
+			select {
+			case message := <-gp.Loopback.input:
+				gp.FinalOutput.output <- message
+				gp.Context = append(gp.Context, &messages.ConversationMessage{
+					Role:    "assistant",
+					Content: fmt.Sprintf("<Agent>%s</Agent> %s", message.Agent, message.Content)})
+				continue
+			}
+		}
+	}()
+}
+
 type AgentSelection struct {
 	Id         string  `json:"id"`
+	Name       string  `json:"name"`
 	Prompt     string  `json:"prompt"`
 	Confidence float64 `json:"confidence"`
 }
