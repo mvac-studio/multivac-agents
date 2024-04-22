@@ -23,8 +23,12 @@ func NewAgentProcessor(agentModel *data.AgentModel, provider providers.ModelProv
 		provider:   provider,
 	}
 	processor.Context = append(processor.Context, providers.Message{
-		Role:    "system",
-		Content: fmt.Sprintf("Your name is %s. %s", agentModel.Name, agentModel.Prompt),
+		Role: "system",
+		Content: fmt.Sprintf("<Agent>%s</Agent>Your name is %s. Do not introduce yourself unless asked to. "+
+			"Do not label your responses with your name. Be straight to the point. If you are asked to do something. "+
+			"Do it, don't give a starting point for doing it. Complete the task. Other agents and their prompts and "+
+			"responses will be "+
+			"marked with <Agent>agentname</Agent>. %s", agentModel.Name, agentModel.Name, agentModel.Prompt),
 	})
 	processor.Processor = NewProcessor[*messages.ConversationMessage, *messages.AgentMessage](processor.Process)
 	return processor

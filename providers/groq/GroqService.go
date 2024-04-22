@@ -3,6 +3,7 @@ package groq
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"multivac.network/services/agents/providers"
@@ -42,13 +43,19 @@ func (s *Service) SendRequest(request providers.Request) (*providers.Message, er
 	r.Header.Add("Content-Type", "application/json")
 
 	resp, err := client.Do(r)
+
 	groqResponse := GroqResponse{}
 	body, err := io.ReadAll(resp.Body)
+	if resp.StatusCode != 200 {
+		log.Println(fmt.Sprintf("Error: %s --V\n%s", resp.Status, body))
+		return nil, err
+	}
 	log.Println(resp.Body)
 	err = json.Unmarshal(body, &groqResponse)
 	if err != nil {
 		return nil, err
 	}
+
 	return &providers.Message{
 		Role:      groqResponse.Choices[0].Message.Role,
 		Content:   groqResponse.Choices[0].Message.Content,
