@@ -5,31 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2d0b90a1-de14-4ceb-a013-a520c9730fc5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/messages/AgentMessage.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/messages/ConversationMessage.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/messages/SocketMessage.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processors/AgentProcessor.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processors/GroupProcessor.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processors/Input.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processors/Output.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processors/Processor.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processors/SocketInputProcessor.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processors/SocketOutputProcessor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.github/workflows/notify-commits-pushed.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/notify-commits-pushed.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/965f8540-f4d7-4bf9-9d2b-b483b43a5eea.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/965f8540-f4d7-4bf9-9d2b-b483b43a5eea.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/processors/ProcessorContext.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/AgentStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/data/AgentDataStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/executors/Agent.go" beforeDir="false" afterPath="$PROJECT_DIR$/executors/Agent.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph/schema.resolvers.go" beforeDir="false" afterPath="$PROJECT_DIR$/graph/schema.resolvers.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/messages/Message.go" beforeDir="false" afterPath="$PROJECT_DIR$/messages/Message.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/messages/ReplyMessage.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/messages/WebSocketMessage.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/providers/ModelService.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/ModelService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/providers/Request.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/Request.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/providers/groq/GroqService.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/groq/GroqService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/ConversationMessage.go" beforeDir="false" afterPath="$PROJECT_DIR$/messages/ConversationMessage.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processors/AgentProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/AgentProcessor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processors/GroupProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/GroupProcessor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processors/Processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/Processor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sessions/GroupContext.go" beforeDir="false" afterPath="$PROJECT_DIR$/sessions/GroupContext.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
