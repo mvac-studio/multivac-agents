@@ -22,6 +22,7 @@ type GroupProcessor struct {
 	Loopback     *Input[*messages.AgentMessage]
 	FinalOutput  *Output[*messages.AgentMessage]
 	Model        *data.GroupModel
+	User         string
 	Context      []*messages.ConversationMessage
 	provider     providers.ModelProvider
 	agents       []*AgentProcessor
@@ -55,9 +56,10 @@ func (gp *GroupProcessor) CommitContext(conversationMessage *messages.Conversati
 }
 
 // NewGroupProcessor creates a new group processor
-func NewGroupProcessor(group *data.GroupModel, provider providers.ModelProvider) *GroupProcessor {
+func NewGroupProcessor(user string, group *data.GroupModel, provider providers.ModelProvider) *GroupProcessor {
 	processor := &GroupProcessor{
 		Model:       group,
+		User:        user,
 		Context:     make([]*messages.ConversationMessage, 0),
 		FinalOutput: NewOutputProcessor[*messages.AgentMessage](),
 		provider:    provider,
@@ -76,7 +78,7 @@ func NewGroupProcessor(group *data.GroupModel, provider providers.ModelProvider)
 	processor.vectorClient = client
 
 	// TODO: this is temporary while working out the issues.
-	// processor.vectorClient.DeleteCollection(context.Background(), group.ID)
+	processor.vectorClient.DeleteCollection(context.Background(), group.ID)
 	return processor
 }
 
@@ -103,10 +105,10 @@ func (gp *GroupProcessor) Process(message *messages.ConversationMessage) error {
 		Message:     message.Content,
 		Agents:      gp.descriptions,
 	})
-
+	reference := gp.getContext(message)
 	request.Messages = append(request.Messages, providers.Message{
 		Role:    "user",
-		Content: content,
+		Content: content + "You can use this history to help you route the message.<History>" + reference + "</History>",
 	})
 
 	response, err := gp.provider.SendRequest(request)
@@ -119,6 +121,7 @@ func (gp *GroupProcessor) Process(message *messages.ConversationMessage) error {
 }
 
 func generateTemplate(data interface{}) (string, error) {
+	// templates should be moved to the database.
 	t, err := template.New("group-template").Parse(`
 		You are a router for a group called '{{.Group}}'. The group is a collection of agents that are
 		working together to solve a problem. The group is described as '{{.Description}}'. The message
@@ -178,12 +181,14 @@ func (gp *GroupProcessor) route(message *messages.ConversationMessage, response 
 				continue
 			}
 
-			prompt := fmt.Sprintf("<Reference>%s</Reference> %s", reference, agent.Prompt)
+			prompt := fmt.Sprintf("<Reference>%s</Reference> Only use reference information directly related to "+
+				"the message and directly related to your description. The information may or may not be relevant in "+
+				"responding to this message: %s", reference, agent.Prompt)
 			message.Context = append(message.Context, &messages.ConversationMessage{Role: "user", Content: prompt})
 			a.input <- message
 		}
 	}
-	_ = gp.CommitContext(message)
+	_ = gp.CommitContext(&messages.ConversationMessage{Role: "user", Content: "<Agent>" + gp.User + "</Agent>" + message.Content})
 }
 
 func (gp *GroupProcessor) initialize() {

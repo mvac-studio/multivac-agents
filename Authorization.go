@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 type Credentials struct {
@@ -21,7 +22,7 @@ type CredentialsRequest struct {
 	GrantType    string `json:"grant_type"`
 }
 
-func validUser(userid string) bool {
+func validUser(userid string) (bool, UserInfo) {
 	domain := os.Getenv("AUTH_DOMAIN")
 	clientId := os.Getenv("AUTH_CLIENT_ID")
 	secret := os.Getenv("AUTH_CLIENT_SECRET")
@@ -36,9 +37,12 @@ func validUser(userid string) bool {
 	res, _ := http.DefaultClient.Do(req)
 
 	defer res.Body.Close()
+	userInfo := UserInfo{}
 	body, _ := io.ReadAll(res.Body)
+	json.Unmarshal(body, &userInfo)
+
 	fmt.Println(string(body))
-	return true
+	return true, userInfo
 }
 
 func getCredentials(domain string, clientId string, secret string) *Credentials {
@@ -67,4 +71,28 @@ func getCredentials(domain string, clientId string, secret string) *Credentials 
 		fmt.Println(err)
 	}
 	return &credentials
+}
+
+type UserInfo struct {
+	CreatedAt     time.Time `json:"created_at"`
+	Email         string    `json:"email"`
+	EmailVerified bool      `json:"email_verified"`
+	FamilyName    string    `json:"family_name"`
+	GivenName     string    `json:"given_name"`
+	Identities    []struct {
+		Provider   string `json:"provider"`
+		UserID     string `json:"user_id"`
+		Connection string `json:"connection"`
+		IsSocial   bool   `json:"isSocial"`
+	} `json:"identities"`
+	IdpTenantDomain string    `json:"idp_tenant_domain"`
+	Locale          string    `json:"locale"`
+	Name            string    `json:"name"`
+	Nickname        string    `json:"nickname"`
+	Picture         string    `json:"picture"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	UserID          string    `json:"user_id"`
+	LastIP          string    `json:"last_ip"`
+	LastLogin       time.Time `json:"last_login"`
+	LoginsCount     int       `json:"logins_count"`
 }

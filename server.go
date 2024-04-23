@@ -70,7 +70,8 @@ func agentChat(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	log.Println(vars["jwt"])
 	log.Println(vars["group"])
-	if validUser(vars["jwt"]) {
+	valid, user := validUser(vars["jwt"])
+	if valid {
 		//TODO (jkelly): validate the actual authorization header
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 		log.Println("Upgrading connection:", request.RemoteAddr)
@@ -89,7 +90,7 @@ func agentChat(writer http.ResponseWriter, request *http.Request) {
 
 		socketInput := processors.NewSocketInputProcessor(ws)
 		socketOutput := processors.NewSocketOutputProcessor(ws)
-		group := processors.NewGroupProcessor(groupModel, provider)
+		group := processors.NewGroupProcessor(user.Name, groupModel, provider)
 		socketInput.ConversationOutput.To(group.Input)
 		group.FinalOutput.To(socketOutput.AgentInput)
 

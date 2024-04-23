@@ -6,11 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="2d0b90a1-de14-4ceb-a013-a520c9730fc5" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Authorization.go" beforeDir="false" afterPath="$PROJECT_DIR$/Authorization.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/processors/AgentProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/AgentProcessor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/processors/GroupProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/GroupProcessor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/providers/groq/GroqService.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/groq/GroqService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
