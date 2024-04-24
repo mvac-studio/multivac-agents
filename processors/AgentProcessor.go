@@ -11,12 +11,13 @@ import (
 
 type AgentProcessor struct {
 	Processor[*messages.ConversationMessage, *messages.AgentMessage]
-	StatusOutput  Output[*messages.StatusMessage]
-	AgentModel    *data.AgentModel
-	Context       []providers.Message
-	SystemMessage providers.Message
-	Memory        *data.VectorStore
-	provider      providers.ModelProvider
+	StatusOutput   Output[*messages.StatusMessage]
+	AgentModel     *data.AgentModel
+	DiagnosticMode bool
+	Context        []providers.Message
+	SystemMessage  providers.Message
+	Memory         *data.VectorStore
+	provider       providers.ModelProvider
 }
 
 func NewAgentProcessor(agentModel *data.AgentModel, provider providers.ModelProvider) *AgentProcessor {
@@ -36,9 +37,15 @@ func NewAgentProcessor(agentModel *data.AgentModel, provider providers.ModelProv
 			3. Be straight to the point. 
 			4. If you are asked to do something, do it. Don't just give a starting point for the user to do it.
 			5. If the user or another agent mentions something that would be important to remember, remember it.
-			6. To create a memory for yourself to remember, use the following format: 
-			'[~MEMORY]{detailed description of the context of the memory} {the memory you want to remember}[MEMORY~]'.
-			7. You can and should ask follow up questions to get more information when needed.
+			6. Memories should be created for any fact about the user or the world in general.
+			7. Memories should be created for any fact that is relevant to the conversation.
+			8. To create a memory for yourself, use the following format: 
+			'[~MEMORY]{detailed description of the context of the fact}:{the fact you want to remember}[MEMORY~]'.
+			9. When you make a memory, you should let the user know that you will remember in a natural way.
+			10. You can and should ask follow up questions to get more information when needed.
+			11. USE YOUR MEMORIES TO PROVIDE MORE INSIGHTFUL RESPONSES WHEN APPROPIATE.	
+			12. If you are told to enter diagnostic mode, you should let the user know you are entering into 
+			diagnostic mode and include '[~DIAGNOSTIC] in your reply'
 			
 
 			INFORMATION:
@@ -55,14 +62,19 @@ func NewAgentProcessor(agentModel *data.AgentModel, provider providers.ModelProv
 
 func (ap *AgentProcessor) Process(message *messages.ConversationMessage) (*messages.AgentMessage, error) {
 	var conversationContext []providers.Message
+	if ap.DiagnosticMode {
+		return ap.processDiagnosticMode(message)
+	}
+	memoryQuery := ap.generateMemoryQuery(message)
+	memories := ap.Memory.Query(memoryQuery, 5, 30)
 	conversationContext = append(conversationContext, ap.SystemMessage)
 	for _, context := range message.Context {
 		conversationContext = append(conversationContext, providers.Message{Role: context.Role, Content: context.Content})
 	}
-	conversationContext = append(conversationContext, providers.Message{Role: "assistant", Content: fmt.Sprintf("This is what I remember, I can use this memory to "+
-		"to provide more insightful response. %s", ap.Memory.Query(message.Content, 5, 30))})
+	conversationContext = append(conversationContext, providers.Message{Role: "user", Content: fmt.Sprintf("I can use these memories to "+
+		"to provide more insightful response: %s. Respond to the message: %s", memories, message.Content)})
 
-	conversationContext = append(conversationContext, providers.Message{Role: "user", Content: message.Content})
+	//conversationContext = append(conversationContext, providers.Message{Role: "user", Content: message.Content})
 	request := providers.Request{Messages: conversationContext, Stream: false}
 
 	response, err := ap.provider.SendRequest(request)
@@ -70,10 +82,16 @@ func (ap *AgentProcessor) Process(message *messages.ConversationMessage) (*messa
 		log.Println("error received from service")
 		log.Fatal(err)
 	}
-	matcher := regexp.MustCompile(`\[~MEMORY](.*?)\[MEMORY~]`)
-	if matcher.MatchString(response.Content) {
-		matches := matcher.FindAllString(response.Content, -1)
-		response.Content = matcher.ReplaceAllString(response.Content, "")
+
+	diagnosticMatcher := regexp.MustCompile(`\[~DIAGNOSTIC]`)
+	if diagnosticMatcher.MatchString(response.Content) {
+		response.Content = diagnosticMatcher.ReplaceAllString(response.Content, "")
+		ap.DiagnosticMode = true
+	}
+	memoryMatcher := regexp.MustCompile(`\[~MEMORY](.*?)\[MEMORY~]`)
+	if memoryMatcher.MatchString(response.Content) {
+		matches := memoryMatcher.FindAllString(response.Content, -1)
+		response.Content = memoryMatcher.ReplaceAllString(response.Content, "")
 		for _, match := range matches {
 			err := ap.Memory.Commit(match)
 			if err != nil {
@@ -83,5 +101,60 @@ func (ap *AgentProcessor) Process(message *messages.ConversationMessage) (*messa
 	}
 
 	ap.Context = append(ap.Context, *response)
+	return &messages.AgentMessage{Agent: ap.AgentModel.Name, Content: response.Content}, nil
+}
+
+func (ap *AgentProcessor) generateMemoryQuery(message *messages.ConversationMessage) string {
+	var queryContext []providers.Message
+	for _, context := range message.Context {
+		queryContext = append(queryContext, providers.Message{Role: context.Role, Content: context.Content})
+	}
+	queryContext = append(queryContext, providers.Message{Role: "user", Content: `
+	  Based on the context of this conversation, generate a short summarization of the conversation to be used
+      to query a vector database of memories. Respond only with the summarization for the query.
+	`})
+	request := providers.Request{Messages: queryContext, Stream: false}
+
+	response, err := ap.provider.SendRequest(request)
+	if err != nil {
+		log.Println("error received from service")
+		log.Fatal(err)
+	}
+	return message.Content + " " + response.Content
+}
+
+func (ap *AgentProcessor) processDiagnosticMode(message *messages.ConversationMessage) (*messages.AgentMessage, error) {
+	request := providers.Request{Messages: []providers.Message{
+		{
+			Role: "system",
+			Content: `
+				RULES:
+				1. If asked to wipe memory, reply with 'Wiping memory [~WIPE_MEMORY]'.
+				2. If asked to exit diagnostic mode, reply with 'Exiting Diagnostic Mode [DIAGNOSTIC~]'.
+		`,
+			Timestamp: 0,
+		},
+		{
+			Role:      message.Role,
+			Content:   message.Content,
+			Timestamp: 0,
+		}}, Stream: false}
+
+	response, err := ap.provider.SendRequest(request)
+	wipeMemoryMatcher := regexp.MustCompile(`\[~WIPE_MEMORY]`)
+	exitDiagnosticMatcher := regexp.MustCompile(`\[DIAGNOSTIC~]`)
+	if wipeMemoryMatcher.MatchString(response.Content) {
+		ap.Memory.Clear()
+		response.Content = wipeMemoryMatcher.ReplaceAllString(response.Content, "")
+	}
+	if exitDiagnosticMatcher.MatchString(response.Content) {
+		ap.DiagnosticMode = false
+		response.Content = exitDiagnosticMatcher.ReplaceAllString(response.Content, "")
+
+	}
+	if err != nil {
+		log.Println("error received from service")
+		log.Fatal(err)
+	}
 	return &messages.AgentMessage{Agent: ap.AgentModel.Name, Content: response.Content}, nil
 }

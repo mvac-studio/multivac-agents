@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"fmt"
 	chromago "github.com/amikos-tech/chroma-go"
 	"github.com/amikos-tech/chroma-go/collection"
 	"github.com/amikos-tech/chroma-go/ollama"
@@ -56,10 +57,19 @@ func (store *VectorStore) Commit(chunk string) error {
 }
 
 func (store *VectorStore) Clear() {
-	_, err := store.client.DeleteCollection(context.Background(), store.collection.Name)
+	fmt.Printf("Memory wiped for %s\n", store.collection.Name)
+	index := store.collection.Name
+	_, err := store.client.DeleteCollection(context.Background(), index)
 	if err != nil {
 		log.Println(err)
 	}
+	col, err := store.client.NewCollection(context.Background(),
+		collection.WithName(index),
+		collection.WithEmbeddingFunction(store.embedFn),
+		collection.WithCreateIfNotExist(true),
+		collection.WithHNSWDistanceFunction(types.L2),
+	)
+	store.collection = col
 }
 
 func (store *VectorStore) Query(query string, top int32, maxDistance float32) string {

@@ -113,12 +113,13 @@ func generateTemplate(data interface{}) (string, error) {
 		Decide which agents should respond and to what prompt with a score between 0 and 1 with 1 being the most confident you are they
 		are the right agent to respond and 0 being the least. 
 		RULES:
-			1. If an agent is referenced by name. Then that agent should have a confidence score of 1.
+			1. If an agent is referenced by name. Then that agent, and ONLY that agent, should have a confidence score of 1.
 			2. Confidence scores should be based on the description of the agent relative to the request unless mentioned by name.
 			3. Scores lower than 0.8 should be excluded from your result.
-			4. Respond with a JSON array in the following format: {"id": "<agent id>","name":"<agent name>", "prompt": "<prompt>", "confidence": <confidence score>}.
-			5. Respond only with the proper formatted JSON. Copy the original prompt for each agent you want to respond.
-			6. THE RESPONSE SHOULD BE JSON ONLY.
+			4. If any agent has a score of 1, then only that agent should respond.
+			5. Respond with a JSON array in the following format: {"id": "<agent id>","name":"<agent name>", "prompt": "<prompt>", "confidence": <confidence score>}.
+			6. Respond only with the proper formatted JSON. Copy the original prompt for each agent you want to respond.
+			7. THE RESPONSE SHOULD BE JSON ONLY.
 	`)
 	if err != nil {
 		return "", err
