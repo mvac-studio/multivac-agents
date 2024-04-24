@@ -167,6 +167,7 @@ func (gp *GroupProcessor) route(message *messages.ConversationMessage, response 
 			}
 
 			message.Context = append(message.Context, &messages.ConversationMessage{Role: "user", Content: message.Content})
+			message.Content = fmt.Sprintf("<Agent>%s</Agent> %s", gp.User, message.Content)
 			a.input <- message
 		}
 	}
