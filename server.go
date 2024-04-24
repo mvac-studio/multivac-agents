@@ -86,7 +86,7 @@ func agentChat(writer http.ResponseWriter, request *http.Request) {
 		agents, err := agentStore.GetAgentsByIds(groupModel.Agents)
 
 		apikey := os.Getenv("GROQ_API_KEY")
-		provider := groq.NewService("mixtral-8x7b-32768", apikey)
+		provider := groq.NewService("llama3-70b-8192", apikey)
 
 		socketInput := processors.NewSocketInputProcessor(ws)
 		socketOutput := processors.NewSocketOutputProcessor(ws)

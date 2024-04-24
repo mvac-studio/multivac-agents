@@ -5,8 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2d0b90a1-de14-4ceb-a013-a520c9730fc5" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/data/VectorStore.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Authorization.go" beforeDir="false" afterPath="$PROJECT_DIR$/Authorization.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/processors/AgentProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/AgentProcessor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/processors/GroupProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/GroupProcessor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server.go" afterDir="false" />
