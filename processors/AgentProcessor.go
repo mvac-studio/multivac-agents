@@ -45,7 +45,7 @@ func NewAgentProcessor(userid string, agentModel *data.AgentModel, provider prov
 			-- Memories should be created for any fact about the user or the world in general.
 			-- Memories should be created for any fact that is relevant to the conversation.
 			-- To create a memory for yourself, use the following format: 
-				'[~MEMORY]{detailed description of the context of the fact}:{the fact you want to remember}[MEMORY~]'.
+				'[~MEMORY]{agent that you talked to}:{detailed description of the context of the fact}:{the fact you want to remember}[MEMORY~]'.
 			-- When you make a memory, you should let the user know that you will remember in a natural way.
 			-- You can and should ask follow up questions to get more information when needed.
 			-- USE YOUR MEMORIES TO PROVIDE MORE INSIGHTFUL RESPONSES WHEN APPROPIATE.	
