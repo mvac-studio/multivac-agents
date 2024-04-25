@@ -7,6 +7,7 @@ import (
 	"multivac.network/services/agents/messages"
 	"multivac.network/services/agents/providers"
 	"regexp"
+	"strings"
 )
 
 type AgentProcessor struct {
@@ -76,7 +77,7 @@ func (ap *AgentProcessor) Process(message *messages.ConversationMessage) (*messa
 		return ap.processDiagnosticMode(message)
 	}
 	memoryQuery := ap.generateMemoryQuery(message)
-	memories, containsSecret := ap.Memory.Query(ap.AgentModel.ID, memoryQuery, 5, 30)
+	memories, secretValues := ap.Memory.Query(ap.AgentModel.ID, memoryQuery, 5, 30)
 	conversationContext = append(conversationContext, ap.SystemMessage)
 	for _, context := range message.Context {
 		conversationContext = append(conversationContext, providers.Message{Role: context.Role, Content: context.Content})
@@ -98,22 +99,26 @@ func (ap *AgentProcessor) Process(message *messages.ConversationMessage) (*messa
 		response.Content = diagnosticMatcher.ReplaceAllString(response.Content, "")
 		ap.DiagnosticMode = true
 	}
-	if !containsSecret {
-		memoryMatcher := regexp.MustCompile(`\[~MEMORY](.*?)\[MEMORY~]`)
-		if memoryMatcher.MatchString(response.Content) {
-			secretMatcher := regexp.MustCompile(`\[~SECRET](.*?)\[SECRET~]`)
-			if secretMatcher.MatchString(response.Content) {
-				secret := secretMatcher.FindStringSubmatch(response.Content)[1]
-				secretRef, _ := ap.Secrets.StoreSecret(ap.UserId, ap.AgentModel.ID, secret)
-				response.Content = secretMatcher.ReplaceAllString(response.Content, "[~SECRET] ref:"+secretRef+"[SECRET~]")
-			}
-			matches := memoryMatcher.FindAllString(response.Content, -1)
-			response.Content = memoryMatcher.ReplaceAllString(response.Content, "")
-			for _, match := range matches {
-				err := ap.Memory.Commit(match)
-				if err != nil {
-					log.Println(err)
+
+	memoryMatcher := regexp.MustCompile(`\[~MEMORY](.*?)\[MEMORY~]`)
+	if memoryMatcher.MatchString(response.Content) {
+		secretMatcher := regexp.MustCompile(`\[~SECRET](.*?)\[SECRET~]`)
+		if secretMatcher.MatchString(response.Content) {
+			secret := secretMatcher.FindStringSubmatch(response.Content)[1]
+			secretRef, _ := ap.Secrets.StoreSecret(ap.UserId, ap.AgentModel.ID, secret)
+			response.Content = secretMatcher.ReplaceAllString(response.Content, "[~SECRET] ref:"+secretRef+"[SECRET~]")
+		}
+		matches := memoryMatcher.FindAllString(response.Content, -1)
+		response.Content = memoryMatcher.ReplaceAllString(response.Content, "")
+		for _, match := range matches {
+			if len(secretValues) > 0 {
+				for _, secret := range secretValues {
+					strings.Replace(match, secret, "[redacted]", -1)
 				}
+			}
+			err := ap.Memory.Commit(match)
+			if err != nil {
+				log.Println(err)
 			}
 		}
 	}

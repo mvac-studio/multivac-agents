@@ -77,7 +77,7 @@ func (store *VectorStore) Clear() {
 	store.collection = col
 }
 
-func (store *VectorStore) Query(agentid string, query string, top int32, maxDistance float32) (memory string, containsSecret bool) {
+func (store *VectorStore) Query(agentid string, query string, top int32, maxDistance float32) (memory string, secretValues []string) {
 	result, err := store.collection.QueryWithOptions(context.TODO(),
 		types.WithNResults(top),
 		types.WithQueryText(query),
@@ -85,7 +85,7 @@ func (store *VectorStore) Query(agentid string, query string, top int32, maxDist
 	if err != nil {
 		log.Println(err)
 	}
-	containsSecret = false
+	secretValues = make([]string, 0)
 	builder := strings.Builder{}
 	secretMatch := regexp.MustCompile(`\[~SECRET] ref:(.*?)\[SECRET~]`)
 	for _, document := range result.Documents {
@@ -94,10 +94,10 @@ func (store *VectorStore) Query(agentid string, query string, top int32, maxDist
 				secretRef := secretMatch.FindStringSubmatch(v)[1]
 				result, _ := store.secrets.RetrieveSecret(secretRef, store.userid, agentid)
 				v = secretMatch.ReplaceAllString(v, result)
-				containsSecret = true
+				secretValues = append(secretValues, result)
 			}
 			builder.WriteString(v)
 		}
 	}
-	return builder.String(), containsSecret
+	return builder.String(), secretValues
 }

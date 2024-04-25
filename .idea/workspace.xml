@@ -6,12 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="2d0b90a1-de14-4ceb-a013-a520c9730fc5" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/AgentDataStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/data/AgentDataStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/AgentModel.go" beforeDir="false" afterPath="$PROJECT_DIR$/data/AgentModel.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/VectorStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/data/VectorStore.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/processors/AgentProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/AgentProcessor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processors/GroupProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/GroupProcessor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
