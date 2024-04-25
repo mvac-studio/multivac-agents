@@ -29,9 +29,19 @@ func (store *AgentDataStore) SaveAgent(agent *model.Agent) (*model.Agent, error)
 
 	id, _ := primitive.ObjectIDFromHex(agent.ID)
 	agent.Key = url.PathEscape(strings.ToLower(agent.Name))
+
+	dataModel := AgentModel{
+		ID:          agent.ID,
+		Name:        agent.Name,
+		Key:         agent.Key,
+		Description: agent.Description,
+		Engine:      agent.Engine,
+		Prompt:      agent.Prompt,
+	}
+
 	filter := bson.M{"_id": id}
 	opts := options.Replace().SetUpsert(true)
-	result, err := store.collection.ReplaceOne(context.Background(), filter, agent, opts)
+	result, err := store.collection.ReplaceOne(context.Background(), filter, dataModel, opts)
 
 	if result.UpsertedID != nil {
 		agent.ID = result.UpsertedID.(primitive.ObjectID).Hex()
