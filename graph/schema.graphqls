@@ -24,15 +24,17 @@ type Query {
 }
 
 
-input NewAgent {
+input AgentInput {
+  id: ID
   name: String!
   description: String!
+  key: String!
   engine: String!
   prompt: String!
 }
 
 type Mutation {
-  createAgent(input: NewAgent!): Agent!
+  saveAgent(input: AgentInput!): Agent!
 }
 
 extend type Group @key(fields: "id") {

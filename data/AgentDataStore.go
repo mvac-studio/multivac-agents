@@ -5,6 +5,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"multivac.network/services/agents/graph/model"
 	"strings"
@@ -22,12 +23,12 @@ func NewAgentDataStore() *AgentDataStore {
 
 }
 
-// CreateAgent Creates a new agent
-func (store *AgentDataStore) CreateAgent(agent *model.Agent) (*model.Agent, error) {
+// SaveAgent Creates a new agent
+func (store *AgentDataStore) SaveAgent(agent *model.Agent) (*model.Agent, error) {
 
 	agent.Name = strings.ToLower(agent.Name)
-	result, err := store.collection.InsertOne(context.Background(), agent)
-	agent.ID = result.InsertedID.(primitive.ObjectID).Hex()
+	result, err := store.collection.ReplaceOne(context.Background(), agent, options.Update().SetUpsert(true))
+	agent.ID = result.UpsertedID.(primitive.ObjectID).Hex()
 	if err != nil {
 		log.Fatal(err)
 		return nil, err

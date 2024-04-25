@@ -76,7 +76,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateAgent func(childComplexity int, input model.NewAgent) int
+		SaveAgent func(childComplexity int, input model.AgentInput) int
 	}
 
 	Query struct {
@@ -96,7 +96,7 @@ type EntityResolver interface {
 	FindGroupByID(ctx context.Context, id string) (*model.Group, error)
 }
 type MutationResolver interface {
-	CreateAgent(ctx context.Context, input model.NewAgent) (*model.Agent, error)
+	SaveAgent(ctx context.Context, input model.AgentInput) (*model.Agent, error)
 }
 type QueryResolver interface {
 	Agents(ctx context.Context) ([]*model.Agent, error)
@@ -230,17 +230,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Group.ID(childComplexity), true
 
-	case "Mutation.createAgent":
-		if e.complexity.Mutation.CreateAgent == nil {
+	case "Mutation.saveAgent":
+		if e.complexity.Mutation.SaveAgent == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_createAgent_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_saveAgent_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateAgent(childComplexity, args["input"].(model.NewAgent)), true
+		return e.complexity.Mutation.SaveAgent(childComplexity, args["input"].(model.AgentInput)), true
 
 	case "Query.agents":
 		if e.complexity.Query.Agents == nil {
@@ -290,7 +290,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputNewAgent,
+		ec.unmarshalInputAgentInput,
 	)
 	first := true
 
@@ -508,13 +508,13 @@ func (ec *executionContext) field_Entity_findGroupByID_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createAgent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_saveAgent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.NewAgent
+	var arg0 model.AgentInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewAgent2multivacᚗnetworkᚋservicesᚋagentsᚋgraphᚋmodelᚐNewAgent(ctx, tmp)
+		arg0, err = ec.unmarshalNAgentInput2multivacᚗnetworkᚋservicesᚋagentsᚋgraphᚋmodelᚐAgentInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1260,8 +1260,8 @@ func (ec *executionContext) fieldContext_Group_agents(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_createAgent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createAgent(ctx, field)
+func (ec *executionContext) _Mutation_saveAgent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_saveAgent(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1274,7 +1274,7 @@ func (ec *executionContext) _Mutation_createAgent(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateAgent(rctx, fc.Args["input"].(model.NewAgent))
+		return ec.resolvers.Mutation().SaveAgent(rctx, fc.Args["input"].(model.AgentInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1291,7 +1291,7 @@ func (ec *executionContext) _Mutation_createAgent(ctx context.Context, field gra
 	return ec.marshalNAgent2ᚖmultivacᚗnetworkᚋservicesᚋagentsᚋgraphᚋmodelᚐAgent(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_createAgent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_saveAgent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -1322,7 +1322,7 @@ func (ec *executionContext) fieldContext_Mutation_createAgent(ctx context.Contex
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createAgent_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_saveAgent_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3487,20 +3487,27 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputNewAgent(ctx context.Context, obj interface{}) (model.NewAgent, error) {
-	var it model.NewAgent
+func (ec *executionContext) unmarshalInputAgentInput(ctx context.Context, obj interface{}) (model.AgentInput, error) {
+	var it model.AgentInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "engine", "prompt"}
+	fieldsInOrder := [...]string{"id", "name", "description", "key", "engine", "prompt"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
 		case "name":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -3515,6 +3522,13 @@ func (ec *executionContext) unmarshalInputNewAgent(ctx context.Context, obj inte
 				return it, err
 			}
 			it.Description = data
+		case "key":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Key = data
 		case "engine":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("engine"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -3830,9 +3844,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "createAgent":
+		case "saveAgent":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createAgent(ctx, field)
+				return ec._Mutation_saveAgent(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -4418,6 +4432,11 @@ func (ec *executionContext) marshalNAgent2ᚖmultivacᚗnetworkᚋservicesᚋage
 	return ec._Agent(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNAgentInput2multivacᚗnetworkᚋservicesᚋagentsᚋgraphᚋmodelᚐAgentInput(ctx context.Context, v interface{}) (model.AgentInput, error) {
+	res, err := ec.unmarshalInputAgentInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4529,11 +4548,6 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNNewAgent2multivacᚗnetworkᚋservicesᚋagentsᚋgraphᚋmodelᚐNewAgent(ctx context.Context, v interface{}) (model.NewAgent, error) {
-	res, err := ec.unmarshalInputNewAgent(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -5128,6 +5142,22 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	res := graphql.MarshalBoolean(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalID(*v)
 	return res
 }
 

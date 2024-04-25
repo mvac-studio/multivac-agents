@@ -13,6 +13,15 @@ type Agent struct {
 
 func (Agent) IsEntity() {}
 
+type AgentInput struct {
+	ID          *string `json:"id,omitempty"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Key         string  `json:"key"`
+	Engine      string  `json:"engine"`
+	Prompt      string  `json:"prompt"`
+}
+
 type Engine struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
@@ -28,13 +37,6 @@ type Group struct {
 func (Group) IsEntity() {}
 
 type Mutation struct {
-}
-
-type NewAgent struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Engine      string `json:"engine"`
-	Prompt      string `json:"prompt"`
 }
 
 type Query struct {

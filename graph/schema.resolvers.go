@@ -14,10 +14,15 @@ import (
 	"multivac.network/services/agents/graph/model"
 )
 
-// CreateAgent is the resolver for the createAgent field.
-func (r *mutationResolver) CreateAgent(ctx context.Context, input model.NewAgent) (*model.Agent, error) {
+// SaveAgent is the resolver for the saveAgent field.
+func (r *mutationResolver) SaveAgent(ctx context.Context, input model.AgentInput) (*model.Agent, error) {
 	agent := data.NewAgentDataStore()
-	return agent.CreateAgent(&model.Agent{
+	var id string
+	if input.ID != nil {
+		id = *input.ID
+	}
+	return agent.SaveAgent(&model.Agent{
+		ID:          id,
 		Name:        input.Name,
 		Description: input.Description,
 		Key:         url.PathEscape(strings.ToLower(input.Name)),
