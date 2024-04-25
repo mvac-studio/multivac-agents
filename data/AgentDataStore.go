@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"multivac.network/services/agents/graph/model"
+	"net/url"
 	"strings"
 )
 
@@ -26,9 +27,16 @@ func NewAgentDataStore() *AgentDataStore {
 // SaveAgent Creates a new agent
 func (store *AgentDataStore) SaveAgent(agent *model.Agent) (*model.Agent, error) {
 
-	agent.Name = strings.ToLower(agent.Name)
-	result, err := store.collection.ReplaceOne(context.Background(), agent, options.Update().SetUpsert(true))
-	agent.ID = result.UpsertedID.(primitive.ObjectID).Hex()
+	id, _ := primitive.ObjectIDFromHex(agent.ID)
+	agent.Key = url.PathEscape(strings.ToLower(agent.Name))
+	filter := bson.M{"_id": id}
+	opts := options.Replace().SetUpsert(true)
+	result, err := store.collection.ReplaceOne(context.Background(), filter, agent, opts)
+
+	if result.UpsertedID != nil {
+		agent.ID = result.UpsertedID.(primitive.ObjectID).Hex()
+	}
+
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
