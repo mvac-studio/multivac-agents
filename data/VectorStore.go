@@ -8,16 +8,19 @@ import (
 	"github.com/amikos-tech/chroma-go/ollama"
 	"github.com/amikos-tech/chroma-go/types"
 	"log"
+	"regexp"
 	"strings"
 )
 
 type VectorStore struct {
 	client     *chromago.Client
+	secrets    *AgentDataStore
+	userid     string
 	collection *chromago.Collection
 	embedFn    types.EmbeddingFunction
 }
 
-func NewVectorStore(index string) *VectorStore {
+func NewVectorStore(userid string, index string) *VectorStore {
 	client, err := chromago.NewClient("http://chromadb-service.default.svc.cluster.local:8000")
 	if err != nil {
 		log.Println(err)
@@ -35,7 +38,9 @@ func NewVectorStore(index string) *VectorStore {
 
 	return &VectorStore{
 		client:     client,
+		userid:     userid,
 		embedFn:    embeddingFunction,
+		secrets:    NewAgentDataStore(),
 		collection: col,
 	}
 }
@@ -72,7 +77,7 @@ func (store *VectorStore) Clear() {
 	store.collection = col
 }
 
-func (store *VectorStore) Query(query string, top int32, maxDistance float32) string {
+func (store *VectorStore) Query(agentid string, query string, top int32, maxDistance float32) (memory string, containsSecret bool) {
 	result, err := store.collection.QueryWithOptions(context.TODO(),
 		types.WithNResults(top),
 		types.WithQueryText(query),
@@ -80,11 +85,19 @@ func (store *VectorStore) Query(query string, top int32, maxDistance float32) st
 	if err != nil {
 		log.Println(err)
 	}
+	containsSecret = false
 	builder := strings.Builder{}
+	secretMatch := regexp.MustCompile(`\[~SECRET] ref:(.*?)\[SECRET~]`)
 	for _, document := range result.Documents {
 		for _, v := range document {
+			if secretMatch.MatchString(v) {
+				secretRef := secretMatch.FindStringSubmatch(v)[1]
+				result, _ := store.secrets.RetrieveSecret(secretRef, store.userid, agentid)
+				v = secretMatch.ReplaceAllString(v, result)
+				containsSecret = true
+			}
 			builder.WriteString(v)
 		}
 	}
-	return builder.String()
+	return builder.String(), containsSecret
 }

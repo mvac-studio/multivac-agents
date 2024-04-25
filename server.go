@@ -95,7 +95,7 @@ func agentChat(writer http.ResponseWriter, request *http.Request) {
 		group.FinalOutput.To(socketOutput.AgentInput)
 
 		for _, agentModel := range agents {
-			agent := processors.NewAgentProcessor(agentModel, provider)
+			agent := processors.NewAgentProcessor(user.UserID, agentModel, provider)
 			err := group.AddAgent(agent)
 			if err != nil {
 				log.Println(err)

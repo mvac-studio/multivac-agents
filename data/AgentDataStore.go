@@ -86,6 +86,35 @@ func (store *AgentDataStore) GetAgentsByIds(ids []string) ([]*AgentModel, error)
 	return results, err
 }
 
+func (store *AgentDataStore) StoreSecret(userid string, agentid string, value string) (string, error) {
+	db := GetDatabase()
+	secretCollection := db.Collection("secrets")
+	secret := MemorySecret{
+		AgentID: agentid,
+		UserID:  userid,
+		Secret:  value,
+	}
+
+	op, err := secretCollection.InsertOne(context.Background(), secret)
+	return op.InsertedID.(primitive.ObjectID).Hex(), err
+}
+
+func (store *AgentDataStore) RetrieveSecret(id string, userid string, agentid string) (string, error) {
+	db := GetDatabase()
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Fatal(err)
+		return "", err
+	}
+	secretCollection := db.Collection("secrets")
+	var secret MemorySecret
+	err = secretCollection.FindOne(context.Background(), bson.M{"_id": oid, "agent_id": agentid, "user_id": userid}).Decode(&secret)
+	if secret.Secret == "" {
+		secret.Secret = "[Redacted]"
+	}
+	return secret.Secret, err
+}
+
 func (store *AgentDataStore) FindAgentById(id string) *model.Agent {
 
 	var agent AgentModel
@@ -123,4 +152,11 @@ func (store *AgentDataStore) FindAgent(name string) *model.Agent {
 		Prompt:      agent.Prompt,
 	}
 
+}
+
+type MemorySecret struct {
+	Id      string `bson:"_id,omitempty"`
+	AgentID string `bson:"agent_id"`
+	UserID  string `bson:"user_id"`
+	Secret  string `bson:"secret"`
 }

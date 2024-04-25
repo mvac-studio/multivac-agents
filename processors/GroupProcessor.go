@@ -32,7 +32,7 @@ type GroupProcessor struct {
 func NewGroupProcessor(user string, group *data.GroupModel, provider providers.ModelProvider) *GroupProcessor {
 	processor := &GroupProcessor{
 		Model:       group,
-		Memory:      data.NewVectorStore(group.ID),
+		Memory:      data.NewVectorStore(user, group.ID),
 		User:        user,
 		Context:     make([]*messages.ConversationMessage, 0),
 		FinalOutput: NewOutputProcessor[*messages.AgentMessage](),
