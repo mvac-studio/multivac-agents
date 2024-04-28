@@ -5,28 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2d0b90a1-de14-4ceb-a013-a520c9730fc5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.protobuf/generate.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/data_global.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/providers/fireworks/FireworksService.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tools/tools.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/open_web_address_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mirrord/mirrord.json" beforeDir="false" afterPath="$PROJECT_DIR$/.mirrord/mirrord.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/AgentDataStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/data/AgentDataStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/GroupDataStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/data/GroupDataStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph/generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/graph/generated.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph/schema.graphqls" beforeDir="false" afterPath="$PROJECT_DIR$/graph/schema.graphqls" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph/schema.resolvers.go" beforeDir="false" afterPath="$PROJECT_DIR$/graph/schema.resolvers.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/messages/ConversationMessage.go" beforeDir="false" afterPath="$PROJECT_DIR$/messages/ConversationMessage.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processors/AgentProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/AgentProcessor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processors/GroupProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/GroupProcessor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/providers/Request.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/Request.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/providers/groq/GroqRequest.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/groq/GroqRequest.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/providers/groq/GroqResponse.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/groq/GroqResponse.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/providers/groq/GroqService.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/groq/GroqService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

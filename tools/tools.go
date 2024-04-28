@@ -46,22 +46,17 @@ func OpenWebAddress(address string) string {
 	content := strings.Builder{}
 	var f func(*html.Node)
 	f = func(n *html.Node) {
-		if n.Type == html.ElementNode && n.Data == "a" {
-			for _, a := range n.Attr {
-				if a.Key == "href" {
-					links.WriteString(fmt.Sprintf("Link: %s\n", a.Val))
-				}
-			}
-		}
 		if n.Type == html.TextNode && n.Data != "style" && n.Data != "script" {
 			text := strings.TrimSpace(n.Data)
 			if len(text) > 0 {
 				content.WriteString(fmt.Sprintf("%s\n", text))
-				fmt.Println("Text:", text)
+				fmt.Println(text)
 			}
 		}
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			f(c)
+			if c.Data != "script" && c.Data != "style" {
+				f(c)
+			}
 		}
 	}
 	f(doc)
