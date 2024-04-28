@@ -76,7 +76,8 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		SaveAgent func(childComplexity int, input model.AgentInput) int
+		DeleteAgent func(childComplexity int, id string) int
+		SaveAgent   func(childComplexity int, input model.AgentInput) int
 	}
 
 	Query struct {
@@ -97,6 +98,7 @@ type EntityResolver interface {
 }
 type MutationResolver interface {
 	SaveAgent(ctx context.Context, input model.AgentInput) (*model.Agent, error)
+	DeleteAgent(ctx context.Context, id string) (*model.Agent, error)
 }
 type QueryResolver interface {
 	Agents(ctx context.Context) ([]*model.Agent, error)
@@ -229,6 +231,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Group.ID(childComplexity), true
+
+	case "Mutation.deleteAgent":
+		if e.complexity.Mutation.DeleteAgent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteAgent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteAgent(childComplexity, args["id"].(string)), true
 
 	case "Mutation.saveAgent":
 		if e.complexity.Mutation.SaveAgent == nil {
@@ -494,6 +508,21 @@ func (ec *executionContext) field_Entity_findAgentByID_args(ctx context.Context,
 }
 
 func (ec *executionContext) field_Entity_findGroupByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteAgent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1323,6 +1352,75 @@ func (ec *executionContext) fieldContext_Mutation_saveAgent(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_saveAgent_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteAgent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteAgent(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteAgent(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Agent)
+	fc.Result = res
+	return ec.marshalNAgent2ᚖmultivacᚗnetworkᚋservicesᚋagentsᚋgraphᚋmodelᚐAgent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteAgent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Agent_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Agent_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Agent_description(ctx, field)
+			case "key":
+				return ec.fieldContext_Agent_key(ctx, field)
+			case "prompt":
+				return ec.fieldContext_Agent_prompt(ctx, field)
+			case "engine":
+				return ec.fieldContext_Agent_engine(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Agent", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteAgent_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3847,6 +3945,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "saveAgent":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_saveAgent(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteAgent":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteAgent(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

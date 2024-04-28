@@ -8,30 +8,59 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"multivac.network/services/agents/graph/model"
+	edges "multivac.network/services/agents/services/multivac-edges"
 	"net/url"
 	"strings"
 )
 
 type AgentDataStore struct {
 	collection *mongo.Collection
+	edges      edges.EdgeServiceClient
+}
+
+type Vertex struct {
+	Ref  string `bson:"ref"`
+	Type string `bson:"type"`
+}
+
+type EdgeModel struct {
+	ID      string `bson:"_id,omitempty"`
+	Target  Vertex `bson:"target"`
+	Source  Vertex `bson:"source"`
+	Created int64  `bson:"created"`
+	Updated int64  `bson:"updated"`
 }
 
 func NewAgentDataStore() *AgentDataStore {
 	db := GetDatabase()
 	return &AgentDataStore{
 		collection: db.Collection("agents"),
+		edges:      edgesService,
 	}
 
 }
 
+// DeleteAgent Deletes an agent
+func (store *AgentDataStore) DeleteAgent(ctx context.Context, id string) (*AgentModel, error) {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	deletedAgent := &AgentModel{}
+	result := store.collection.FindOneAndDelete(ctx, bson.M{"_id": oid})
+	err = result.Decode(deletedAgent)
+	return deletedAgent, err
+
+}
+
 // SaveAgent Creates a new agent
-func (store *AgentDataStore) SaveAgent(agent *model.Agent) (*model.Agent, error) {
+func (store *AgentDataStore) SaveAgent(ctx context.Context, agent *model.Agent) (*model.Agent, error) {
 
 	id, _ := primitive.ObjectIDFromHex(agent.ID)
 	agent.Key = url.PathEscape(strings.ToLower(agent.Name))
 
 	dataModel := AgentModel{
-		ID:          agent.ID,
 		Name:        agent.Name,
 		Key:         agent.Key,
 		Description: agent.Description,
@@ -39,18 +68,27 @@ func (store *AgentDataStore) SaveAgent(agent *model.Agent) (*model.Agent, error)
 		Prompt:      agent.Prompt,
 	}
 
-	filter := bson.M{"_id": id}
-	opts := options.Replace().SetUpsert(true)
-	result, err := store.collection.ReplaceOne(context.Background(), filter, dataModel, opts)
+	if id != primitive.NilObjectID {
+		filter := bson.M{"_id": id}
+		opts := options.Update().SetUpsert(true)
+		result, err := store.collection.UpdateOne(ctx, filter, bson.M{"$set": dataModel}, opts)
 
-	if result.UpsertedID != nil {
-		agent.ID = result.UpsertedID.(primitive.ObjectID).Hex()
+		if result.UpsertedID != nil {
+			agent.ID = result.UpsertedID.(primitive.ObjectID).Hex()
+		}
+		if err != nil {
+			log.Fatal(err)
+			return nil, err
+		}
+	} else {
+		result, err := store.collection.InsertOne(ctx, dataModel)
+		if err != nil {
+			log.Fatal(err)
+			return nil, err
+		}
+		agent.ID = result.InsertedID.(primitive.ObjectID).Hex()
 	}
 
-	if err != nil {
-		log.Fatal(err)
-		return nil, err
-	}
 	return agent, nil
 }
 
@@ -82,6 +120,22 @@ func (store *AgentDataStore) RetrieveAgents() ([]*model.Agent, error) {
 		})
 	}
 	return results, nil
+}
+
+func (store *AgentDataStore) GetAgentsByGroup(ctx context.Context, groupid string) ([]*AgentModel, error) {
+	result, err := store.edges.GetForwardEdges(ctx, &edges.GetForwardEdgesRequest{
+		Source:     &edges.Vertex{Ref: groupid, Type: "group"},
+		TargetType: "agent",
+	})
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	ids := []string{}
+	for _, edge := range result.Edges {
+		ids = append(ids, edge.Target.Ref)
+	}
+	return store.GetAgentsByIds(ids)
 }
 
 func (store *AgentDataStore) GetAgentsByIds(ids []string) ([]*AgentModel, error) {

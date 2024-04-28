@@ -17,11 +17,11 @@ import (
 // SaveAgent is the resolver for the saveAgent field.
 func (r *mutationResolver) SaveAgent(ctx context.Context, input model.AgentInput) (*model.Agent, error) {
 	agent := data.NewAgentDataStore()
-	var id string
+	var id = ""
 	if input.ID != nil {
 		id = *input.ID
 	}
-	return agent.SaveAgent(&model.Agent{
+	return agent.SaveAgent(ctx, &model.Agent{
 		ID:          id,
 		Name:        input.Name,
 		Description: input.Description,
@@ -29,6 +29,27 @@ func (r *mutationResolver) SaveAgent(ctx context.Context, input model.AgentInput
 		Engine:      input.Engine,
 		Prompt:      input.Prompt,
 	})
+}
+
+// DeleteAgent is the resolver for the deleteAgent field.
+func (r *mutationResolver) DeleteAgent(ctx context.Context, id string) (*model.Agent, error) {
+	agentStore := data.NewAgentDataStore()
+	groupStore := data.NewGroupDataStore()
+
+	err := groupStore.RemoveAgentFromAllGroups(id)
+	agent, err := agentStore.DeleteAgent(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	result := &model.Agent{
+		ID:          agent.ID,
+		Name:        agent.Name,
+		Description: agent.Description,
+		Key:         agent.Key,
+		Engine:      agent.Engine,
+		Prompt:      agent.Prompt,
+	}
+	return result, nil
 }
 
 // Agents is the resolver for the agents field.

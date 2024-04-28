@@ -60,7 +60,7 @@ func (gp *GroupProcessor) AddAgent(agent *AgentProcessor) error {
 // Process processes the message
 func (gp *GroupProcessor) Process(message *messages.ConversationMessage) error {
 	request := providers.Request{Messages: make([]providers.Message, 0), Stream: false}
-
+	request.DisableToolUse = true
 	content, err := generateTemplate(struct {
 		Group       string
 		Description string
@@ -92,7 +92,7 @@ func (gp *GroupProcessor) Process(message *messages.ConversationMessage) error {
 		Role:    "user",
 		Content: message.Content,
 	})
-
+	request.DisableToolUse = true
 	response, err := gp.provider.SendRequest(request)
 	if err != nil {
 		log.Println(err)
@@ -113,13 +113,19 @@ func generateTemplate(data interface{}) (string, error) {
 		Decide which agents should respond and to what prompt with a score between 0 and 1 with 1 being the most confident you are they
 		are the right agent to respond and 0 being the least. 
 		RULES:
-			1. If an agent is referenced by name. Then that agent, and ONLY that agent, should have a confidence score of 1.
-			2. Confidence scores should be based on the description of the agent relative to the request unless mentioned by name.
-			3. Scores lower than 0.8 should be excluded from your result.
-			4. If any agent has a score of 1, then only that agent should respond.
-			5. Respond with a JSON array in the following format: {"id": "<agent id>","name":"<agent name>", "prompt": "<prompt>", "confidence": <confidence score>}.
-			6. Respond only with the proper formatted JSON. Copy the original prompt for each agent you want to respond.
-			7. THE RESPONSE SHOULD BE JSON ONLY.
+			-- If an agent is referenced by name. Then that agent, and ONLY that agent, should have a confidence score of 1.
+			-- Confidence scores should be based on the description of the agent relative to the request unless mentioned by name.
+			-- Scores lower than 0.8 should be excluded from your result.
+			-- If any agent has a score of 1, then only that agent should respond.
+			-- You never ever use tools.
+			-- Respond with a JSON array in the following format: {"id": "<agent id>","name":"<agent name>", "prompt": "<prompt>", "confidence": <confidence score>, "requires_tool": <true|false>}.
+			-- Respond only with the proper formatted JSON. Copy the original prompt for each agent you want to respond.
+			-- THE RESPONSE SHOULD BE JSON ONLY.
+
+			-- Agents have the following tools available:
+				--- 'browse_web' - Should always be used to browse the webpage of an address and extract content and links.
+				--- 'get_current_date' - Should always be used to get the current date and or time.
+			
 	`)
 	if err != nil {
 		return "", err
@@ -169,6 +175,7 @@ func (gp *GroupProcessor) route(message *messages.ConversationMessage, response 
 
 			message.Context = append(message.Context, &messages.ConversationMessage{Role: "user", Content: message.Content})
 			message.Content = fmt.Sprintf("<Agent>%s</Agent> %s", gp.User, message.Content)
+			message.UseTool = agent.RequiresTool
 			a.input <- message
 		}
 	}
@@ -213,8 +220,9 @@ func (gp *GroupProcessor) initializeLoopback() {
 }
 
 type AgentSelection struct {
-	Id         string  `json:"id"`
-	Name       string  `json:"name"`
-	Prompt     string  `json:"prompt"`
-	Confidence float64 `json:"confidence"`
+	Id           string  `json:"id"`
+	Name         string  `json:"name"`
+	Prompt       string  `json:"prompt"`
+	Confidence   float64 `json:"confidence"`
+	RequiresTool bool    `json:"requires_tool"`
 }

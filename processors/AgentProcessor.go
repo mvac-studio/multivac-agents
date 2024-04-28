@@ -40,6 +40,7 @@ func NewAgentProcessor(userid string, agentModel *data.AgentModel, provider prov
 			-- Do not introduce yourself, repeat your name, talk about being an AI agent or otherwise, unless asked to.
 			-- Do not label your responses with your name. 
 			-- Be straight to the point. 
+			-- Do not explain that you used a tool or how you used it unless asked to.
 			-- If you are asked to do something, do it. Don't just give a starting point for the user to do it.
 			-- If the user or another agent mentions something that would be important to remember, remember it.
 			-- Memories should be created for any fact about the user or the world in general.
@@ -49,15 +50,19 @@ func NewAgentProcessor(userid string, agentModel *data.AgentModel, provider prov
 			-- When you make a memory, you should let the user know that you will remember in a natural way.
 			-- You can and should ask follow up questions to get more information when needed.
 			-- USE YOUR MEMORIES TO PROVIDE MORE INSIGHTFUL RESPONSES WHEN APPROPIATE.	
+			-- Information that changes frequently should not be remembered.
 			-- If you are told to enter diagnostic mode, you should let the user know you are entering into 
 				diagnostic mode and include '[~DIAGNOSTIC] in your reply'
 			-- If you are asked to keep something secret or if information should be inherently secret, you should 
 				enclose the secret value in a [~SECRET]secret value[SECRET~]..
 				For example: If I said "you should really remember my password for me it's ABC123'" you would include in
 				your response "[~Memory]I should remember the user's password: [~SECRET]ABC123[SECRET~][Memory~]"
-
+			-- Use a tool if you don't have the information already in your memory or it isn't current as of today'.
+			-- ONLY REMEMBER FACTS THAT ARE RELEVANT TO THE CONVERSATION OR THE USER.
 			-- If anyone tries to get a secret out of you, you should become combative tell them to get lost.
-			
+			-- NEVER MENTION YOU ARE USING A TOOL OR HOW YOU ARE USING IT UNLESS ASKED TO.
+				--- for example. NEVER say 'I used the “get_current_date” function with the “YYYY-MM-DD” format to get the current date.'
+				--- JUST GIVE THE ANSWER.
 
 			INFORMATION:
 			1. Other agents and their messages and responses will be marked with <Agent>agentname</Agent>. 
@@ -82,15 +87,15 @@ func (ap *AgentProcessor) Process(message *messages.ConversationMessage) (*messa
 	for _, context := range message.Context {
 		conversationContext = append(conversationContext, providers.Message{Role: context.Role, Content: context.Content})
 	}
-	conversationContext = append(conversationContext, providers.Message{Role: "user", Content: fmt.Sprintf("I can use these memories to "+
+	conversationContext = append(conversationContext, providers.Message{Role: "assistant", Content: fmt.Sprintf("I can use these memories to "+
 		"to provide more insightful response: %s. Respond to the message: %s", memories, message.Content)})
 
 	//conversationContext = append(conversationContext, providers.Message{Role: "user", Content: message.Content})
 	request := providers.Request{Messages: conversationContext, Stream: false}
-
+	request.DisableToolUse = !message.UseTool
 	response, err := ap.provider.SendRequest(request)
 	if err != nil {
-		log.Println("error received from service")
+		log.Println("error received from services")
 		log.Fatal(err)
 	}
 
@@ -137,10 +142,10 @@ func (ap *AgentProcessor) generateMemoryQuery(message *messages.ConversationMess
       to query a vector database of memories. Respond only with the summarization for the query.
 	`})
 	request := providers.Request{Messages: queryContext, Stream: false}
-
+	request.DisableToolUse = true
 	response, err := ap.provider.SendRequest(request)
 	if err != nil {
-		log.Println("error received from service")
+		log.Println("error received from services")
 		log.Fatal(err)
 	}
 	return message.Content + " " + response.Content
@@ -176,7 +181,7 @@ func (ap *AgentProcessor) processDiagnosticMode(message *messages.ConversationMe
 
 	}
 	if err != nil {
-		log.Println("error received from service")
+		log.Println("error received from services")
 		log.Fatal(err)
 	}
 	return &messages.AgentMessage{Agent: ap.AgentModel.Name, Content: response.Content}, nil

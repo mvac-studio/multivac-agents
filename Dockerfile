@@ -12,7 +12,7 @@ COPY . .
 RUN go get -d -v
 
 # Build the binary.
-RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /go/bin/service
+RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /go/bin/services
 
 # Use scratch image for minimal size.
 FROM scratch

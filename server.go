@@ -9,11 +9,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"multivac.network/services/agents/data"
 	"multivac.network/services/agents/graph"
 	"multivac.network/services/agents/processors"
 	"multivac.network/services/agents/providers/groq"
+	"multivac.network/services/agents/services/multivac-edges"
 	"net/http"
 	"os"
 )
@@ -26,7 +29,8 @@ func main() {
 		port = defaultPort
 	}
 
-	initializeData()
+	client := initializeEdgeClient()
+	initializeData(client)
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
 	router := mux.NewRouter()
@@ -38,7 +42,16 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }
 
-func initializeData() {
+func initializeEdgeClient() edges.EdgeServiceClient {
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	conn, err := grpc.Dial("multivac-edges-service.default.svc.cluster.local:50051", opts...)
+	if err != nil {
+		log.Fatalf("failed to dial: %v", err)
+	}
+	return edges.NewEdgeServiceClient(conn)
+}
+
+func initializeData(edgesService edges.EdgeServiceClient) {
 	clientOptions := options.Client()
 
 	clientOptions.ApplyURI("mongodb+srv://db-ngent-io.rcarmov.mongodb.net")
@@ -55,6 +68,7 @@ func initializeData() {
 		panic(err)
 	}
 	data.SetDatabase(client.Database("ngent"))
+	data.SetEdgesService(edgesService)
 }
 
 var contexts = make([]*processors.GroupProcessor, 0)
@@ -83,7 +97,7 @@ func agentChat(writer http.ResponseWriter, request *http.Request) {
 		groupStore := data.NewGroupDataStore()
 		groupModel, err := groupStore.GetGroup(vars["group"])
 		agentStore := data.NewAgentDataStore()
-		agents, err := agentStore.GetAgentsByIds(groupModel.Agents)
+		agents, err := agentStore.GetAgentsByGroup(context.Background(), groupModel.ID)
 
 		apikey := os.Getenv("GROQ_API_KEY")
 		provider := groq.NewService("llama3-70b-8192", apikey)

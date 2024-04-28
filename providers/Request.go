@@ -12,7 +12,8 @@ type Tool struct {
 }
 
 type Request struct {
-	Messages []Message `json:"messages"`
-	Stream   bool      `json:"stream"`
-	Tools    []Tool    `json:"tools"`
+	Messages       []Message `json:"messages"`
+	Stream         bool      `json:"stream"`
+	Tools          []Tool    `json:"tools"`
+	DisableToolUse bool      `json:"disable_tool_use"`
 }

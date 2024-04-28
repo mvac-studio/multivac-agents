@@ -6,13 +6,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
+	edges "multivac.network/services/agents/services/multivac-edges"
 	"time"
 )
 
-var database *mongo.Database
-
-func SetDatabase(db *mongo.Database) {
-	database = db
+func SetEdgesService(service edges.EdgeServiceClient) {
+	edgesService = service
 }
 
 func GetDatabase() (db *mongo.Database) {
@@ -123,6 +122,13 @@ func (g *GroupDataStore) AddAgentToGroup(id string, agentID string) (*GroupModel
 func (g *GroupDataStore) RemoveAgentFromGroup(id string, agentID string) error {
 	_, err := g.collection.UpdateOne(nil, id, map[string]string{"$pull": agentID})
 	return err
+}
+
+// RemoveAgentFromAllGroups function removes an agent from all groups in the database
+func (g *GroupDataStore) RemoveAgentFromAllGroups(agentID string) error {
+	_, err := g.collection.UpdateMany(nil, bson.M{"agents": agentID}, map[string]string{"$pull": agentID})
+	return err
+
 }
 
 func (g *GroupDataStore) FindGroupsByAgentId(agentID string) ([]*GroupModel, error) {

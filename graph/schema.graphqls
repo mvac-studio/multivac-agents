@@ -35,6 +35,7 @@ input AgentInput {
 
 type Mutation {
   saveAgent(input: AgentInput!): Agent!
+  deleteAgent(id: ID!): Agent!
 }
 
 extend type Group @key(fields: "id") {
