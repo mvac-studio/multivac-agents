@@ -20,6 +20,7 @@ type GroupProcessor struct {
 	Model       *data.GroupModel
 
 	User         string
+	UserId       string
 	Context      []*messages.ConversationMessage
 	provider     providers.ModelProvider
 	agents       []*AgentProcessor
@@ -29,11 +30,12 @@ type GroupProcessor struct {
 // CommitContext saves the context of the group to the vector database.
 
 // NewGroupProcessor creates a new group processor
-func NewGroupProcessor(user string, group *data.GroupModel, provider providers.ModelProvider) *GroupProcessor {
+func NewGroupProcessor(user string, userid string, group *data.GroupModel, provider providers.ModelProvider) *GroupProcessor {
 	processor := &GroupProcessor{
 		Model:       group,
 		Memory:      data.NewVectorStore(user, group.ID),
 		User:        user,
+		UserId:      userid,
 		Context:     make([]*messages.ConversationMessage, 0),
 		FinalOutput: NewOutputProcessor[*messages.AgentMessage](),
 		provider:    provider,
@@ -105,11 +107,11 @@ func (gp *GroupProcessor) Process(message *messages.ConversationMessage) error {
 func generateTemplate(data interface{}) (string, error) {
 	// templates should be moved to the database.
 	t, err := template.New("group-template").Parse(`
-		You are a conversation router for a group called '{{.Group}}'. 
+		You are a conversation router for a group called "{{.Group}}". 
 		The group is a collection of agents that are working together to solve a problem. 
-		The group is described as '{{.Description}}'. 
+		The group is described as "{{.Description}}". 
 		The agents in the group are: 
-			'{{.Agents}}'
+			"{{.Agents}}"
 		Decide which agents should respond and to what prompt with a score between 0 and 1 with 1 being the most confident you are they
 		are the right agent to respond and 0 being the least. 
 		RULES:
@@ -118,7 +120,12 @@ func generateTemplate(data interface{}) (string, error) {
 			-- Scores lower than 0.8 should be excluded from your result.
 			-- If any agent has a score of 1, then only that agent should respond.
 			-- You never ever use tools.
-			-- Respond with a JSON array in the following format: {"id": "<agent id>","name":"<agent name>", "prompt": "<prompt>", "confidence": <confidence score>, "requires_tool": <true|false>}.
+			-- Respond with a JSON array with each object containing the following properties: 
+				"id": agent id string,
+				"name": agent name string, 
+				"prompt": original prompt string, 
+				"confidence": int, 
+				"requires_tool": boolean
 			-- Respond only with the proper formatted JSON. Copy the original prompt for each agent you want to respond.
 			-- THE RESPONSE SHOULD BE JSON ONLY.
 
@@ -160,6 +167,7 @@ func (gp *GroupProcessor) route(message *messages.ConversationMessage, response 
 	}
 
 	message.Context = ctx
+	referenceInformation := fetchInformation(gp.UserId, message.Content)
 	for _, agent := range agents {
 		if agent.Confidence < 0.8 {
 			continue
@@ -174,6 +182,7 @@ func (gp *GroupProcessor) route(message *messages.ConversationMessage, response 
 			}
 
 			message.Context = append(message.Context, &messages.ConversationMessage{Role: "user", Content: message.Content})
+			message.Context = append(message.Context, &messages.ConversationMessage{Role: "assistant", Content: fmt.Sprintf("Reference Information: ", referenceInformation)})
 			message.Content = fmt.Sprintf("<Agent>%s</Agent> %s", gp.User, message.Content)
 			message.UseTool = agent.RequiresTool
 			a.input <- message

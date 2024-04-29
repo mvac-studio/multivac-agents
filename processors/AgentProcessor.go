@@ -2,10 +2,13 @@ package processors
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"multivac.network/services/agents/data"
 	"multivac.network/services/agents/messages"
 	"multivac.network/services/agents/providers"
+	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 )
@@ -69,11 +72,22 @@ func NewAgentProcessor(userid string, agentModel *data.AgentModel, provider prov
 
 			ABOUT YOU:
 			%s
-
 			`, agentModel.Name, agentModel.Name, agentModel.Prompt),
 	}
 	processor.Processor = NewProcessor[*messages.ConversationMessage, *messages.AgentMessage](processor.Process)
 	return processor
+}
+
+func fetchInformation(index string, text string) string {
+	client := &http.Client{}
+	query := url.QueryEscape(text)
+	response, err := client.Get("http://multivac-embeddings-service.default.svc.cluster.local/context?index=" + index + "&q=" + query)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	content, err := io.ReadAll(response.Body)
+	return string(content)
 }
 
 func (ap *AgentProcessor) Process(message *messages.ConversationMessage) (*messages.AgentMessage, error) {

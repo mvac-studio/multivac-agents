@@ -99,12 +99,18 @@ func agentChat(writer http.ResponseWriter, request *http.Request) {
 		agentStore := data.NewAgentDataStore()
 		agents, err := agentStore.GetAgentsByGroup(context.Background(), groupModel.ID)
 
-		apikey := os.Getenv("GROQ_API_KEY")
-		provider := groq.NewService("llama3-70b-8192", apikey)
+		apiKey := os.Getenv("GROQ_API_KEY")
+		model := "llama3-70b-8192"
+
+		provider := groq.NewService(model, apiKey)
+
+		//provider := fireworks.NewService(model, apiKey, 3000)
+		//apiKey := os.Getenv("FIREWORKS_API_KEY")
+		//model := "llama-v3-70b-instruct-hf"
 
 		socketInput := processors.NewSocketInputProcessor(ws)
 		socketOutput := processors.NewSocketOutputProcessor(ws)
-		group := processors.NewGroupProcessor(user.Name, groupModel, provider)
+		group := processors.NewGroupProcessor(user.Name, user.UserID, groupModel, provider)
 		socketInput.ConversationOutput.To(group.Input)
 		group.FinalOutput.To(socketOutput.AgentInput)
 

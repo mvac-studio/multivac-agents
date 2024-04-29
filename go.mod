@@ -5,9 +5,12 @@ go 1.21
 require (
 	github.com/99designs/gqlgen v0.17.45
 	github.com/amikos-tech/chroma-go v0.1.3
+	github.com/aws/aws-sdk-go v1.51.30
+	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.1
 	github.com/mitchellh/mapstructure v1.5.0
+	github.com/tebeka/selenium v0.9.9
 	github.com/vektah/gqlparser/v2 v2.5.11
 	go.mongodb.org/mongo-driver v1.14.0
 	golang.org/x/net v0.22.0
@@ -18,11 +21,12 @@ require (
 require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
+	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
