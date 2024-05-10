@@ -5,17 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2d0b90a1-de14-4ceb-a013-a520c9730fc5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/executors/Agent.go.old" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/965f8540-f4d7-4bf9-9d2b-b483b43a5eea.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/executors/Agent.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/messages/AgentMessage.go" beforeDir="false" afterPath="$PROJECT_DIR$/messages/AgentMessage.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processors/AgentProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/AgentProcessor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processors/SocketOutputProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/SocketOutputProcessor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
