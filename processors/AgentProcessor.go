@@ -2,6 +2,7 @@ package processors
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"io"
 	"log"
 	"multivac.network/services/agents/data"
@@ -15,7 +16,7 @@ import (
 
 type AgentProcessor struct {
 	Processor[*messages.ConversationMessage, *messages.AgentMessage]
-	StatusOutput   Output[*messages.StatusMessage]
+	StatusOutput   *Output[*messages.StatusMessage]
 	AgentModel     *data.AgentModel
 	UserId         string
 	Secrets        *data.AgentDataStore
@@ -29,12 +30,13 @@ type AgentProcessor struct {
 func NewAgentProcessor(userid string, agentModel *data.AgentModel, provider providers.ModelProvider) *AgentProcessor {
 	// data.NewVectorStore(agentModel.ID).Clear()
 	processor := &AgentProcessor{
-		AgentModel: agentModel,
-		UserId:     userid,
-		Secrets:    data.NewAgentDataStore(),
-		Memory:     data.NewVectorStore(userid, agentModel.ID),
-		Context:    make([]providers.Message, 0),
-		provider:   provider,
+		AgentModel:   agentModel,
+		StatusOutput: NewOutputProcessor[*messages.StatusMessage](),
+		UserId:       userid,
+		Secrets:      data.NewAgentDataStore(),
+		Memory:       data.NewVectorStore(userid, agentModel.ID),
+		Context:      make([]providers.Message, 0),
+		provider:     provider,
 	}
 	processor.SystemMessage = providers.Message{
 		Role: "system",
@@ -91,6 +93,8 @@ func fetchInformation(index string, text string) string {
 }
 
 func (ap *AgentProcessor) Process(message *messages.ConversationMessage) (*messages.AgentMessage, error) {
+	messageId, _ := uuid.NewUUID()
+	ap.StatusOutput.output <- &messages.StatusMessage{Status: "typing", Agent: ap.AgentModel.Name, StatusId: messageId.String()}
 	var conversationContext []providers.Message
 	if ap.DiagnosticMode {
 		return ap.processDiagnosticMode(message)
@@ -143,7 +147,7 @@ func (ap *AgentProcessor) Process(message *messages.ConversationMessage) (*messa
 	}
 
 	ap.Context = append(ap.Context, *response)
-	return &messages.AgentMessage{Agent: ap.AgentModel.Name, Content: response.Content}, nil
+	return &messages.AgentMessage{Agent: ap.AgentModel.Name, Content: response.Content, StatusId: messageId.String()}, nil
 }
 
 func (ap *AgentProcessor) generateMemoryQuery(message *messages.ConversationMessage) string {

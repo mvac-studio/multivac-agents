@@ -1,11 +1,13 @@
 package messages
 
 type AgentMessage struct {
-	Agent   string `json:"agent"`
-	Content string `json:"content"`
+	StatusId string `json:"statusId"`
+	Agent    string `json:"agent"`
+	Content  string `json:"content"`
 }
 
 type StatusMessage struct {
-	Agent  string `json:"agent"`
-	Status string `json:"status"`
+	StatusId string `json:"statusId"`
+	Agent    string `json:"agent"`
+	Status   string `json:"status"`
 }

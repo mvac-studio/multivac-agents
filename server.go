@@ -80,7 +80,6 @@ var upgrader = websocket.Upgrader{
 
 func agentChat(writer http.ResponseWriter, request *http.Request) {
 	// TODO: check authorization
-
 	vars := mux.Vars(request)
 	log.Println(vars["jwt"])
 	log.Println(vars["group"])
@@ -116,6 +115,7 @@ func agentChat(writer http.ResponseWriter, request *http.Request) {
 
 		for _, agentModel := range agents {
 			agent := processors.NewAgentProcessor(user.UserID, agentModel, provider)
+			agent.StatusOutput.To(socketOutput.StatusInput)
 			err := group.AddAgent(agent)
 			if err != nil {
 				log.Println(err)

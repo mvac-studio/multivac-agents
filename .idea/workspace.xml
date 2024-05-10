@@ -5,19 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2d0b90a1-de14-4ceb-a013-a520c9730fc5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/providers/fireworks/FireworksContent.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/providers/fireworks/FireworksMessage.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/providers/fireworks/FireworksRequest.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/providers/fireworks/FireworksResponseFormat.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/executors/Agent.go.old" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/965f8540-f4d7-4bf9-9d2b-b483b43a5eea.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/executors/Agent.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/AgentMessage.go" beforeDir="false" afterPath="$PROJECT_DIR$/messages/AgentMessage.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/processors/AgentProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/AgentProcessor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processors/GroupProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/GroupProcessor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/providers/Message.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/Message.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/providers/fireworks/FireworksService.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/fireworks/FireworksService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processors/SocketOutputProcessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processors/SocketOutputProcessor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/tools.go" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tools.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,7 +29,7 @@
       </list>
     </option>
   </component>
-  <component name="GOROOT" url="file://$USER_HOME$/sdk/go1.21.0" />
+  <component name="GOROOT" url="file://$USER_HOME$/go/go1.22.2" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -59,7 +57,7 @@
   &quot;keyToString&quot;: {
     &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
     &quot;Go Build.go build belli.executor&quot;: &quot;Run&quot;,
-    &quot;Go Build.go build multivac.network/services/agents.executor&quot;: &quot;Run&quot;,
+    &quot;Go Build.go build multivac.network/services/agents.executor&quot;: &quot;Debug&quot;,
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
@@ -68,11 +66,11 @@
     &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/jkelly/GolandProjects/multivac-services/multivac-agents&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/jkelly/GolandProjects/multivac-services/multivac-organizations&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;go.sdk&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
   &quot;keyToStringList&quot;: {
