@@ -6,7 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="2d0b90a1-de14-4ceb-a013-a520c9730fc5" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mirrord/mirrord.json" beforeDir="false" afterPath="$PROJECT_DIR$/.mirrord/mirrord.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.kube/deployment.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/.kube/deployment.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,20 +49,21 @@
   "keyToString": {
     "DefaultGoTemplateProperty": "Go File",
     "Go Build.go build belli.executor": "Run",
-    "Go Build.go build multivac.network/services/agents.executor": "Debug",
+    "Go Build.go build multivac.network/services/agents.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.go.formatter.settings.were.checked": "true",
     "RunOnceActivity.go.migrated.go.modules.settings": "true",
     "RunOnceActivity.go.modules.automatic.dependencies.download": "true",
     "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
+    "Shell Script.Telepresence Connect.executor": "Run",
     "git-widget-placeholder": "main",
     "go.import.settings.migrated": "true",
     "last_opened_file_path": "/home/jkelly/GolandProjects/multivac-services/multivac-organizations",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "settings.editor.selected.configurable": "io.datawire.telepresence.ui.settings.TelepresenceSettingsConfigurable",
     "vue.rearranger.settings.migration": "true"
   },
   "keyToStringList": {
@@ -87,6 +89,11 @@
     <configuration name="go build multivac.network/services/agents" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
       <module name="belli" />
       <working_directory value="$PROJECT_DIR$" />
+      <EXTENSION ID="io.datawire.telepresence.products.goland.GolandRunConfigurationExtension">
+        <INTERCEPT_ENTRIES>
+          <INTERCEPT_ENTRY INTERCEPT_NAME="multivac-agents-deployment" IS_ACTIVE="true" />
+        </INTERCEPT_ENTRIES>
+      </EXTENSION>
       <kind value="PACKAGE" />
       <package value="multivac.network/services/agents" />
       <directory value="$PROJECT_DIR$" />

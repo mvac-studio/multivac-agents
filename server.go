@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/mux"
@@ -25,6 +26,8 @@ const defaultPort = "8080"
 
 func main() {
 	port := os.Getenv("PORT")
+	anthropicAPIKey := os.Getenv("ANTHROPIC_API_KEY")
+	fmt.Println(anthropicAPIKey)
 	if port == "" {
 		port = defaultPort
 	}
